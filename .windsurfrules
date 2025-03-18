@@ -27,3 +27,7 @@ We're creating Legacy CMS app based on Node 14, Bower and jQuery.
 - `public/app.js` - main app logic
 - `src/pages/*.html` - pages
 - `src/server` - server-side logic
+
+## General practices
+
+- Do not comment business logic in JavaScript

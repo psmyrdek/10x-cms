@@ -1,6 +1,6 @@
 {
   "name": "10x-cms",
-  "description": "Legacy CMS app based on Node 14, Bower and jQuery",
+  "description": "Powerful CMS app based on Node 14, Bower and jQuery",
   "dependencies": {
     "jquery": "3.7.1",
     "bootstrap": "5.3.2"
