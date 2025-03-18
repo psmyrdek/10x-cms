@@ -2,7 +2,7 @@
 
 ## Goals
 
-We're creating Legacy CMS app based on Node 14, Bower and jQuery.
+We're creating Legacy CMS app based on Node 16, Bower and jQuery.
 
 - The goal is to use common antipatterns and flaws of legacy web apps to make it more interesting.
 - We're using jQuery for DOM manipulation and Bower for package management.

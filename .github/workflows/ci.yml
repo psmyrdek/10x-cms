@@ -28,3 +28,6 @@ jobs:
 
       - name: Install Bower dependencies
         run: bower install
+
+      - name: Run tests
+        run: npm test
