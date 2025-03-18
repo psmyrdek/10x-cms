@@ -1,0 +1,56 @@
+<!-- @layout:base -->
+<!-- @title:Login - 10x CMS -->
+
+<div class="container mt-4">
+  <div class="row justify-content-center">
+    <div class="col-md-6">
+      <div class="card">
+        <div class="card-header">
+          <h3>Login to 10x CMS</h3>
+        </div>
+        <div class="card-body">
+          <form id="loginForm" method="post" action="/login">
+            <div class="mb-3">
+              <label for="username" class="form-label">Username</label>
+              <input type="text" class="form-control" id="username" name="username" required>
+            </div>
+            <div class="mb-3">
+              <label for="password" class="form-label">Password</label>
+              <input type="password" class="form-control" id="password" name="password" required>
+            </div>
+            <div id="loginError" class="alert alert-danger d-none" role="alert">
+              Invalid username or password
+            </div>
+            <button type="submit" class="btn btn-primary">Login</button>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  $(document).ready(function() {
+    $('#loginForm').submit(function(e) {
+      e.preventDefault();
+      
+      var username = $('#username').val();
+      var password = $('#password').val();
+      
+      $.ajax({
+        type: 'POST',
+        url: '/login',
+        data: {
+          username: username,
+          password: password
+        },
+        success: function(response) {
+          window.location.href = '/home';
+        },
+        error: function(xhr) {
+          $('#loginError').removeClass('d-none');
+        }
+      });
+    });
+  });
+</script>
