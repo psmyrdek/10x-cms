@@ -17,21 +17,21 @@ var multerStorage = multer.diskStorage({
     // Use timestamp + original extension to avoid filename conflicts
     var ext = path.extname(file.originalname);
     cb(null, Date.now() + ext);
-  }
+  },
 });
 
-var upload = multer({ 
+var upload = multer({
   storage: multerStorage,
   limits: {
-    fileSize: 5 * 1024 * 1024 // 5MB limit
+    fileSize: 5 * 1024 * 1024, // 5MB limit
   },
   fileFilter: function (req, file, cb) {
     // Accept only image files
-    if (!file.mimetype.startsWith('image/')) {
-      return cb(new Error('Only image files are allowed'));
+    if (!file.mimetype.startsWith("image/")) {
+      return cb(new Error("Only image files are allowed"));
     }
     cb(null, true);
-  }
+  },
 });
 
 // Load environment variables
@@ -116,7 +116,7 @@ app.get("/collections", requireAuth, function (req, res) {
       collectionsHtml += '<div class="card">';
       collectionsHtml += '<div class="card-body">';
       // Add meta tag with collection ID
-      collectionsHtml += '<!-- @collectionId:' + collection.id + ' -->';
+      collectionsHtml += "<!-- @collectionId:" + collection.id + " -->";
       collectionsHtml += '<h5 class="card-title">' + collection.name + "</h5>";
       collectionsHtml +=
         '<p class="card-text">Items: ' + collection.items.length + "</p>";
@@ -186,11 +186,21 @@ app.get("/collections/:id", requireAuth, function (req, res) {
       // Media field type
       formFieldsHtml +=
         '<div class="input-group">' +
-        '<input type="hidden" id="' + field + '" name="' + field + '" class="media-field-input">' +
-        '<input type="text" class="form-control media-field-display" id="' + field + '_display" readonly placeholder="No image selected">' +
-        '<button type="button" class="btn btn-primary media-selector-btn" data-field="' + field + '">Select Image</button>' +
-        '</div>' +
-        '<div class="mt-2 media-preview-container" id="' + field + '_preview"></div>';
+        '<input type="hidden" id="' +
+        field +
+        '" name="' +
+        field +
+        '" class="media-field-input">' +
+        '<input type="text" class="form-control media-field-display" id="' +
+        field +
+        '_display" readonly placeholder="No image selected">' +
+        '<button type="button" class="btn btn-primary media-selector-btn" data-field="' +
+        field +
+        '">Select Image</button>' +
+        "</div>" +
+        '<div class="mt-2 media-preview-container" id="' +
+        field +
+        '_preview"></div>';
     } else {
       formFieldsHtml +=
         '<input type="' +
@@ -230,7 +240,10 @@ app.get("/collections/:id", requireAuth, function (req, res) {
         var fieldType = collection.schema[field];
         if (fieldType === "media" && item[field]) {
           // For media fields, display as image thumbnail
-          itemsHtml += '<td><img src="' + item[field] + '" alt="Media" class="img-thumbnail" style="max-width: 50px; max-height: 50px;"></td>';
+          itemsHtml +=
+            '<td><img src="' +
+            item[field] +
+            '" alt="Media" class="img-thumbnail" style="max-width: 50px; max-height: 50px;"></td>';
         } else {
           itemsHtml += "<td>" + (item[field] || "") + "</td>";
         }
@@ -300,54 +313,66 @@ app.post("/api/collections/:id/items", requireAuth, function (req, res) {
   res.json({success: true, item: item});
 });
 
-app.put("/api/collections/:collectionId/items/:itemId", requireAuth, function (req, res) {
-  var collectionId = req.params.collectionId;
-  var itemId = req.params.itemId;
-  var collection = storageModule.getCollectionById(collectionId);
+app.put(
+  "/api/collections/:collectionId/items/:itemId",
+  requireAuth,
+  function (req, res) {
+    var collectionId = req.params.collectionId;
+    var itemId = req.params.itemId;
+    var collection = storageModule.getCollectionById(collectionId);
 
-  if (!collection) {
-    return res.status(404).json({error: "Collection not found"});
+    if (!collection) {
+      return res.status(404).json({error: "Collection not found"});
+    }
+
+    var updates = {};
+
+    // Process item fields from form
+    for (var field in collection.schema) {
+      if (req.body[field] !== undefined) {
+        updates[field] = req.body[field];
+      }
+    }
+
+    var result = storageModule.updateItemInCollection(
+      collectionId,
+      itemId,
+      updates
+    );
+
+    if (!result) {
+      return res.status(404).json({error: "Item not found"});
+    }
+
+    res.json({success: true, item: result});
   }
+);
 
-  var updates = {};
+app.delete(
+  "/api/collections/:collectionId/items/:itemId",
+  requireAuth,
+  function (req, res) {
+    var collectionId = req.params.collectionId;
+    var itemId = req.params.itemId;
 
-  // Process item fields from form
-  for (var field in collection.schema) {
-    if (req.body[field] !== undefined) {
-      updates[field] = req.body[field];
+    var success = storageModule.deleteItemFromCollection(collectionId, itemId);
+
+    if (success) {
+      res.json({success: true, message: "Item deleted successfully"});
+    } else {
+      res.status(404).json({error: "Collection or item not found"});
     }
   }
-
-  var result = storageModule.updateItemInCollection(collectionId, itemId, updates);
-  
-  if (!result) {
-    return res.status(404).json({error: "Item not found"});
-  }
-  
-  res.json({success: true, item: result});
-});
-
-app.delete("/api/collections/:collectionId/items/:itemId", requireAuth, function (req, res) {
-  var collectionId = req.params.collectionId;
-  var itemId = req.params.itemId;
-  
-  var success = storageModule.deleteItemFromCollection(collectionId, itemId);
-  
-  if (success) {
-    res.json({success: true, message: "Item deleted successfully"});
-  } else {
-    res.status(404).json({error: "Collection or item not found"});
-  }
-});
+);
 
 app.delete("/api/collections/:id", requireAuth, function (req, res) {
   var collectionId = req.params.id;
-  
+
   // Check if collection ID is provided
   if (!collectionId) {
     return res.status(400).json({error: "Collection ID is required"});
   }
-  
+
   var success = storageModule.deleteCollection(collectionId);
 
   if (success) {
@@ -415,17 +440,38 @@ app.get("/media", requireAuth, function (req, res) {
       var item = mediaItems[i];
       mediaHtml += '<div class="col-md-3 mb-4">';
       mediaHtml += '<div class="card h-100">';
-      mediaHtml += '<img src="' + item.path + '" class="card-img-top" alt="' + item.originalname + '" style="height: 150px; object-fit: cover;">';
+      mediaHtml +=
+        '<img src="' +
+        item.path +
+        '" class="card-img-top" alt="' +
+        item.originalname +
+        '" style="height: 150px; object-fit: cover;">';
       mediaHtml += '<div class="card-body">';
       // Add meta tag with media ID
-      mediaHtml += '<!-- @mediaId:' + item.id + ' -->';
-      mediaHtml += '<h6 class="card-title text-truncate">' + item.originalname + '</h6>';
-      mediaHtml += '<p class="card-text small text-muted">' + (item.description || 'No description') + '</p>';
+      mediaHtml += "<!-- @mediaId:" + item.id + " -->";
+      mediaHtml +=
+        '<h6 class="card-title text-truncate">' + item.originalname + "</h6>";
+      mediaHtml +=
+        '<p class="card-text small text-muted">' +
+        (item.description || "No description") +
+        "</p>";
       mediaHtml += '<div class="d-flex justify-content-between">';
-      mediaHtml += '<button class="btn btn-sm btn-primary preview-image-btn" data-id="' + item.id + '" data-path="' + item.path + '" data-name="' + item.originalname + '" data-description="' + (item.description || '') + '">Preview</button>';
-      mediaHtml += '<button class="btn btn-sm btn-danger delete-image-btn" data-id="' + item.id + '">Delete</button>';
-      mediaHtml += '</div>';
-      mediaHtml += '</div></div></div>';
+      mediaHtml +=
+        '<button class="btn btn-sm btn-primary preview-image-btn" data-id="' +
+        item.id +
+        '" data-path="' +
+        item.path +
+        '" data-name="' +
+        item.originalname +
+        '" data-description="' +
+        (item.description || "") +
+        '">Preview</button>';
+      mediaHtml +=
+        '<button class="btn btn-sm btn-danger delete-image-btn" data-id="' +
+        item.id +
+        '">Delete</button>';
+      mediaHtml += "</div>";
+      mediaHtml += "</div></div></div>";
     }
   }
 
@@ -443,29 +489,34 @@ app.get("/media", requireAuth, function (req, res) {
 });
 
 // API routes for media
-app.post("/api/media", requireAuth, upload.single("image"), function (req, res) {
-  try {
-    if (!req.file) {
-      return res.status(400).json({ error: "No image file uploaded" });
+app.post(
+  "/api/media",
+  requireAuth,
+  upload.single("image"),
+  function (req, res) {
+    try {
+      if (!req.file) {
+        return res.status(400).json({error: "No image file uploaded"});
+      }
+
+      var description = req.body.description || "";
+      var mediaItem = mediaModule.addMedia(req.file, description);
+
+      res.json({success: true, media: mediaItem});
+    } catch (err) {
+      console.error("Error uploading image:", err);
+      res.status(500).json({error: "Error uploading image: " + err.message});
     }
-
-    var description = req.body.description || "";
-    var mediaItem = mediaModule.addMedia(req.file, description);
-
-    res.json({ success: true, media: mediaItem });
-  } catch (err) {
-    console.error("Error uploading image:", err);
-    res.status(500).json({ error: "Error uploading image: " + err.message });
   }
-});
+);
 
 app.get("/api/media", requireAuth, function (req, res) {
   try {
     var mediaItems = mediaModule.getAllMedia();
-    res.json({ success: true, media: mediaItems });
+    res.json({success: true, media: mediaItems});
   } catch (err) {
     console.error("Error retrieving media:", err);
-    res.status(500).json({ error: "Error retrieving media: " + err.message });
+    res.status(500).json({error: "Error retrieving media: " + err.message});
   }
 });
 
@@ -473,15 +524,15 @@ app.delete("/api/media/:id", requireAuth, function (req, res) {
   var mediaId = req.params.id;
 
   if (!mediaId) {
-    return res.status(400).json({ error: "Media ID is required" });
+    return res.status(400).json({error: "Media ID is required"});
   }
 
   var success = mediaModule.deleteMedia(mediaId);
 
   if (success) {
-    res.json({ success: true, message: "Media deleted successfully" });
+    res.json({success: true, message: "Media deleted successfully"});
   } else {
-    res.status(404).json({ error: "Media not found or could not be deleted" });
+    res.status(404).json({error: "Media not found or could not be deleted"});
   }
 });
 
@@ -493,5 +544,5 @@ mediaModule.initializeMediaStorage();
 
 // Start server
 var server = app.listen(3000, function () {
-  console.log("Server is running on port 3000");
+  console.log("Server is running on http://localhost:3000");
 });

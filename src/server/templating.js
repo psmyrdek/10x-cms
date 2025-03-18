@@ -38,10 +38,10 @@ function injectComponent(content, componentName, variables) {
   if (!componentContent) {
     return content;
   }
-  
+
   // Process the component content with variables before injecting
   componentContent = renderTemplate(componentContent, variables);
-  
+
   return content.replace(
     "<!-- @inject:" + componentName + " -->",
     componentContent
@@ -68,11 +68,11 @@ function processConditionals(content, variables) {
   // Process if conditions
   var ifRegex = /<!-- @if:(\w+) -->([\s\S]*?)<!-- @endif -->/g;
   var match;
-  
+
   while ((match = ifRegex.exec(content)) !== null) {
     var condition = match[1];
     var conditionalContent = match[2];
-    
+
     // Check if the condition variable exists and is truthy
     if (variables[condition]) {
       // Replace the entire conditional block with just the content
@@ -82,26 +82,29 @@ function processConditionals(content, variables) {
       content = content.replace(match[0], "");
     }
   }
-  
+
   return content;
 }
 
 function renderTemplate(template, variables) {
   var content = template;
-  
+
   // First process conditionals
   content = processConditionals(content, variables);
-  
+
   // Then replace variables
   for (var key in variables) {
-    if (typeof variables[key] === "string" || typeof variables[key] === "number") {
+    if (
+      typeof variables[key] === "string" ||
+      typeof variables[key] === "number"
+    ) {
       content = content.replace(
         new RegExp("{{" + key + "}}", "g"),
         variables[key]
       );
     }
   }
-  
+
   return content;
 }
 
@@ -115,12 +118,12 @@ function renderPage(pageName, req, customVariables) {
 
   var meta = parseMetaTags(content);
   var variables = {
-    title: meta.title || "10x CMS",
+    title: meta.title || "10xCMS",
     currentYear: new Date().getFullYear(),
     // Add authentication status if request object is provided
-    isAuthenticated: req && req.cookies && req.cookies.auth ? true : false
+    isAuthenticated: req && req.cookies && req.cookies.auth ? true : false,
   };
-  
+
   // Merge custom variables if provided
   if (customVariables) {
     for (var key in customVariables) {
@@ -146,5 +149,5 @@ module.exports = {
   renderPage: renderPage,
   renderTemplate: renderTemplate,
   renderWithLayout: renderWithLayout,
-  parseMetaTags: parseMetaTags
+  parseMetaTags: parseMetaTags,
 };

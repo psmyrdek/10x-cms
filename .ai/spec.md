@@ -1,4 +1,4 @@
-# 10x CMS
+# 10xCMS
 
 A versatile Content Management System (CMS) for managing and publishing content on websites.
 

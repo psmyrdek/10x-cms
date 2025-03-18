@@ -1,6 +1,6 @@
-# 10x CMS
+# 10xCMS
 
-![10x CMS](./public/images/banner.png)
+![10xCMS](./public/images/banner.png)
 
 Nowoczesny System Zarządzania Treścią zbudowany z myślą o wydajności i skalowalności (i refaktoryzacji).
 
