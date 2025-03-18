@@ -105,7 +105,7 @@ function renderTemplate(template, variables) {
   return content;
 }
 
-function renderPage(pageName, req) {
+function renderPage(pageName, req, customVariables) {
   var pagePath = path.join(process.cwd(), "src/pages", pageName + ".html");
   var content = readFileSync(pagePath);
 
@@ -120,6 +120,13 @@ function renderPage(pageName, req) {
     // Add authentication status if request object is provided
     isAuthenticated: req && req.cookies && req.cookies.auth ? true : false
   };
+  
+  // Merge custom variables if provided
+  if (customVariables) {
+    for (var key in customVariables) {
+      variables[key] = customVariables[key];
+    }
+  }
 
   content = content
     .split("\n")
