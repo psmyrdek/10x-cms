@@ -1,42 +1,96 @@
 # 10x CMS
 
-A modern Content Management System built with performance and scalability in mind.
+Nowoczesny System Zarządzania Treścią zbudowany z myślą o wydajności i skalowalności.
 
-## Prerequisites
+## Wymagania wstępne
 
-- Node.js and npm
-- Bower (for frontend dependencies)
+- Node.js i npm
+- Bower (dla zależności frontendowych)
 
-## Getting Started
+## Rozpoczęcie pracy
 
-1. Install global dependencies:
+1. Zainstaluj globalne zależności:
 ```bash
 npm install -g bower
 ```
 
-2. Install project dependencies:
+2. Zainstaluj zależności projektu:
 ```bash
 npm install
 bower install
 ```
 
-Frontend dependencies (jQuery and Bootstrap) will be installed in `public/vendor` directory.
+Zależności frontendowe (jQuery i Bootstrap) zostaną zainstalowane w katalogu `public/vendor`.
 
-## Project Structure
+## Struktura projektu
 
 ```
 .
 ├── public/
-│   └── vendor/      # Bower managed frontend dependencies
-├── bower.json       # Frontend dependency configuration
-├── .bowerrc        # Bower configuration
-└── package.json    # Node.js dependency configuration
+│   ├── app.js        # Główna logika aplikacji po stronie klienta
+│   ├── uploads/      # Katalog na przesłane pliki mediów
+│   └── vendor/       # Zależności frontendowe zarządzane przez Bower
+├── src/
+│   ├── components/   # Komponenty HTML
+│   ├── layout/       # Szablony układu strony
+│   ├── pages/        # Strony HTML
+│   └── server/       # Logika po stronie serwera
+│       ├── data/     # Pliki JSON z danymi
+│       ├── media.js  # Obsługa biblioteki mediów
+│       ├── storage.js # Obsługa kolekcji danych
+│       └── templating.js # System szablonów
+├── index.js          # Główny plik wejściowy aplikacji
+├── bower.json        # Konfiguracja zależności frontendowych
+├── .bowerrc          # Konfiguracja Bower
+└── package.json      # Konfiguracja zależności Node.js
 ```
 
-## Development
+## Funkcjonalności
 
-To start working on the project, make sure you have all dependencies installed as described in the Getting Started section.
+### Zarządzanie kolekcjami
 
-## License
+System umożliwia tworzenie i zarządzanie kolekcjami danych z niestandardowymi schematami. Dla każdej kolekcji można:
 
-This project is proprietary software.
+- Definiować własne pola i typy danych
+- Dodawać, edytować i usuwać elementy
+- Zarządzać strukturą danych
+
+Dostępne typy pól:
+- Tekst (krótki)
+- Tekst (długi)
+- Liczba
+- Data
+- Media (obraz)
+
+### Biblioteka mediów
+
+System zawiera bibliotekę mediów do zarządzania obrazami:
+
+- Przesyłanie obrazów (z limitem 5MB)
+- Przeglądanie galerii obrazów
+- Dodawanie opisów do obrazów
+- Usuwanie niepotrzebnych obrazów
+- Kopiowanie adresów URL obrazów
+- Podgląd obrazów w modalu
+
+### Integracja mediów z kolekcjami
+
+Możliwość dodawania pól typu "media" do kolekcji:
+
+- Wybór obrazów z biblioteki mediów podczas tworzenia elementów kolekcji
+- Wyświetlanie miniatur obrazów w tabeli elementów kolekcji
+- Wyszukiwanie i filtrowanie obrazów w selektorze mediów
+
+## Uruchamianie aplikacji
+
+Aby uruchomić aplikację w trybie deweloperskim:
+
+```bash
+npm run dev
+```
+
+Aplikacja będzie dostępna pod adresem `http://localhost:3000`.
+
+## Licencja
+
+Ten projekt jest oprogramowaniem własnościowym.

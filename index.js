@@ -1,10 +1,38 @@
 var express = require("express");
 var path = require("path");
 var templating = require("./src/server/templating");
-var storage = require("./src/server/storage");
+var storageModule = require("./src/server/storage");
+var mediaModule = require("./src/server/media");
 var bodyParser = require("body-parser");
 var dotenv = require("dotenv");
 var fs = require("fs");
+var multer = require("multer");
+
+// Configure multer for file uploads
+var multerStorage = multer.diskStorage({
+  destination: function (req, file, cb) {
+    cb(null, "public/uploads/");
+  },
+  filename: function (req, file, cb) {
+    // Use timestamp + original extension to avoid filename conflicts
+    var ext = path.extname(file.originalname);
+    cb(null, Date.now() + ext);
+  }
+});
+
+var upload = multer({ 
+  storage: multerStorage,
+  limits: {
+    fileSize: 5 * 1024 * 1024 // 5MB limit
+  },
+  fileFilter: function (req, file, cb) {
+    // Accept only image files
+    if (!file.mimetype.startsWith('image/')) {
+      return cb(new Error('Only image files are allowed'));
+    }
+    cb(null, true);
+  }
+});
 
 // Load environment variables
 if (fs.existsSync(".env.development")) {
@@ -18,6 +46,7 @@ var app = express();
 // Middleware
 app.use(express.static("public"));
 app.use("/vendor", express.static("public/vendor"));
+app.use("/images", express.static("public/images"));
 app.use(bodyParser.urlencoded({extended: true}));
 app.use(bodyParser.json());
 
@@ -74,7 +103,7 @@ function renderPage(req, res) {
 
 // Collections routes
 app.get("/collections", requireAuth, function (req, res) {
-  var collections = storage.getCollections();
+  var collections = storageModule.getCollections();
   var collectionsHtml = "";
 
   if (collections.length === 0) {
@@ -86,6 +115,8 @@ app.get("/collections", requireAuth, function (req, res) {
       collectionsHtml += '<div class="col-md-4 mb-4">';
       collectionsHtml += '<div class="card">';
       collectionsHtml += '<div class="card-body">';
+      // Add meta tag with collection ID
+      collectionsHtml += '<!-- @collectionId:' + collection.id + ' -->';
       collectionsHtml += '<h5 class="card-title">' + collection.name + "</h5>";
       collectionsHtml +=
         '<p class="card-text">Items: ' + collection.items.length + "</p>";
@@ -120,7 +151,7 @@ app.get("/collections", requireAuth, function (req, res) {
 
 app.get("/collections/:id", requireAuth, function (req, res) {
   var collectionId = req.params.id;
-  var collection = storage.getCollectionById(collectionId);
+  var collection = storageModule.getCollectionById(collectionId);
 
   if (!collection) {
     return res.status(404).send("Collection not found");
@@ -151,6 +182,15 @@ app.get("/collections/:id", requireAuth, function (req, res) {
         '" name="' +
         field +
         '" rows="3"></textarea>';
+    } else if (fieldType === "media") {
+      // Media field type
+      formFieldsHtml +=
+        '<div class="input-group">' +
+        '<input type="hidden" id="' + field + '" name="' + field + '" class="media-field-input">' +
+        '<input type="text" class="form-control media-field-display" id="' + field + '_display" readonly placeholder="No image selected">' +
+        '<button type="button" class="btn btn-primary media-selector-btn" data-field="' + field + '">Select Image</button>' +
+        '</div>' +
+        '<div class="mt-2 media-preview-container" id="' + field + '_preview"></div>';
     } else {
       formFieldsHtml +=
         '<input type="' +
@@ -187,7 +227,13 @@ app.get("/collections/:id", requireAuth, function (req, res) {
       itemsHtml += '<tr data-id="' + item.id + '">';
 
       for (var field in collection.schema) {
-        itemsHtml += "<td>" + (item[field] || "") + "</td>";
+        var fieldType = collection.schema[field];
+        if (fieldType === "media" && item[field]) {
+          // For media fields, display as image thumbnail
+          itemsHtml += '<td><img src="' + item[field] + '" alt="Media" class="img-thumbnail" style="max-width: 50px; max-height: 50px;"></td>';
+        } else {
+          itemsHtml += "<td>" + (item[field] || "") + "</td>";
+        }
       }
 
       itemsHtml += "<td>";
@@ -229,13 +275,13 @@ app.post("/api/collections", requireAuth, function (req, res) {
     }
   }
 
-  var collection = storage.createCollection(name, schema);
-  res.redirect("/collections");
+  var collection = storageModule.createCollection(name, schema);
+  res.json({success: true, collection: collection});
 });
 
 app.post("/api/collections/:id/items", requireAuth, function (req, res) {
   var collectionId = req.params.id;
-  var collection = storage.getCollectionById(collectionId);
+  var collection = storageModule.getCollectionById(collectionId);
 
   if (!collection) {
     return res.status(404).json({error: "Collection not found"});
@@ -250,16 +296,62 @@ app.post("/api/collections/:id/items", requireAuth, function (req, res) {
     }
   }
 
-  var updatedCollection = storage.addItemToCollection(collectionId, item);
+  var updatedCollection = storageModule.addItemToCollection(collectionId, item);
   res.json({success: true, item: item});
+});
+
+app.put("/api/collections/:collectionId/items/:itemId", requireAuth, function (req, res) {
+  var collectionId = req.params.collectionId;
+  var itemId = req.params.itemId;
+  var collection = storageModule.getCollectionById(collectionId);
+
+  if (!collection) {
+    return res.status(404).json({error: "Collection not found"});
+  }
+
+  var updates = {};
+
+  // Process item fields from form
+  for (var field in collection.schema) {
+    if (req.body[field] !== undefined) {
+      updates[field] = req.body[field];
+    }
+  }
+
+  var result = storageModule.updateItemInCollection(collectionId, itemId, updates);
+  
+  if (!result) {
+    return res.status(404).json({error: "Item not found"});
+  }
+  
+  res.json({success: true, item: result});
+});
+
+app.delete("/api/collections/:collectionId/items/:itemId", requireAuth, function (req, res) {
+  var collectionId = req.params.collectionId;
+  var itemId = req.params.itemId;
+  
+  var success = storageModule.deleteItemFromCollection(collectionId, itemId);
+  
+  if (success) {
+    res.json({success: true, message: "Item deleted successfully"});
+  } else {
+    res.status(404).json({error: "Collection or item not found"});
+  }
 });
 
 app.delete("/api/collections/:id", requireAuth, function (req, res) {
   var collectionId = req.params.id;
-  var success = storage.deleteCollection(collectionId);
+  
+  // Check if collection ID is provided
+  if (!collectionId) {
+    return res.status(400).json({error: "Collection ID is required"});
+  }
+  
+  var success = storageModule.deleteCollection(collectionId);
 
   if (success) {
-    res.redirect("/collections");
+    res.json({success: true, message: "Collection deleted successfully"});
   } else {
     res.status(404).json({error: "Collection not found"});
   }
@@ -310,8 +402,94 @@ app.get("/logout", function (req, res) {
 app.get("/", requireAuth, renderPage);
 app.get("/home", requireAuth, renderPage);
 
+// Media Library routes
+app.get("/media", requireAuth, function (req, res) {
+  var mediaItems = mediaModule.getAllMedia();
+  var mediaHtml = "";
+
+  if (mediaItems.length === 0) {
+    mediaHtml =
+      '<div class="col-12"><div class="alert alert-info">No images found. Upload your first image to get started.</div></div>';
+  } else {
+    for (var i = 0; i < mediaItems.length; i++) {
+      var item = mediaItems[i];
+      mediaHtml += '<div class="col-md-3 mb-4">';
+      mediaHtml += '<div class="card h-100">';
+      mediaHtml += '<img src="' + item.path + '" class="card-img-top" alt="' + item.originalname + '" style="height: 150px; object-fit: cover;">';
+      mediaHtml += '<div class="card-body">';
+      // Add meta tag with media ID
+      mediaHtml += '<!-- @mediaId:' + item.id + ' -->';
+      mediaHtml += '<h6 class="card-title text-truncate">' + item.originalname + '</h6>';
+      mediaHtml += '<p class="card-text small text-muted">' + (item.description || 'No description') + '</p>';
+      mediaHtml += '<div class="d-flex justify-content-between">';
+      mediaHtml += '<button class="btn btn-sm btn-primary preview-image-btn" data-id="' + item.id + '" data-path="' + item.path + '" data-name="' + item.originalname + '" data-description="' + (item.description || '') + '">Preview</button>';
+      mediaHtml += '<button class="btn btn-sm btn-danger delete-image-btn" data-id="' + item.id + '">Delete</button>';
+      mediaHtml += '</div>';
+      mediaHtml += '</div></div></div>';
+    }
+  }
+
+  var variables = {
+    mediaHtml: mediaHtml,
+  };
+
+  var content = templating.renderPage("media", req, variables);
+
+  if (!content) {
+    return res.status(500).send("Error loading template");
+  }
+
+  res.send(content);
+});
+
+// API routes for media
+app.post("/api/media", requireAuth, upload.single("image"), function (req, res) {
+  try {
+    if (!req.file) {
+      return res.status(400).json({ error: "No image file uploaded" });
+    }
+
+    var description = req.body.description || "";
+    var mediaItem = mediaModule.addMedia(req.file, description);
+
+    res.json({ success: true, media: mediaItem });
+  } catch (err) {
+    console.error("Error uploading image:", err);
+    res.status(500).json({ error: "Error uploading image: " + err.message });
+  }
+});
+
+app.get("/api/media", requireAuth, function (req, res) {
+  try {
+    var mediaItems = mediaModule.getAllMedia();
+    res.json({ success: true, media: mediaItems });
+  } catch (err) {
+    console.error("Error retrieving media:", err);
+    res.status(500).json({ error: "Error retrieving media: " + err.message });
+  }
+});
+
+app.delete("/api/media/:id", requireAuth, function (req, res) {
+  var mediaId = req.params.id;
+
+  if (!mediaId) {
+    return res.status(400).json({ error: "Media ID is required" });
+  }
+
+  var success = mediaModule.deleteMedia(mediaId);
+
+  if (success) {
+    res.json({ success: true, message: "Media deleted successfully" });
+  } else {
+    res.status(404).json({ error: "Media not found or could not be deleted" });
+  }
+});
+
 // Initialize storage
-storage.initializeStorage();
+storageModule.initializeStorage();
+
+// Initialize media storage
+mediaModule.initializeMediaStorage();
 
 // Start server
 var server = app.listen(3000, function () {

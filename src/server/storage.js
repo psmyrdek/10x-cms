@@ -156,6 +156,76 @@ function addItemToCollection(collectionId, item) {
   return updateCollection(collectionId, { items: collection.items });
 }
 
+// Update an item in a collection
+function updateItemInCollection(collectionId, itemId, updates) {
+  var collection = getCollectionById(collectionId);
+
+  if (!collection) {
+    return null;
+  }
+
+  var itemIndex = -1;
+  var item = null;
+
+  // Find the item by ID
+  for (var i = 0; i < collection.items.length; i++) {
+    if (collection.items[i].id === itemId) {
+      itemIndex = i;
+      item = collection.items[i];
+      break;
+    }
+  }
+
+  if (itemIndex === -1) {
+    return null;
+  }
+
+  // Update fields
+  for (var key in updates) {
+    item[key] = updates[key];
+  }
+
+  // Update timestamp
+  item.updatedAt = new Date().toISOString();
+
+  // Update collection
+  collection.items[itemIndex] = item;
+  updateCollection(collectionId, { items: collection.items });
+
+  return item;
+}
+
+// Delete an item from a collection
+function deleteItemFromCollection(collectionId, itemId) {
+  var collection = getCollectionById(collectionId);
+
+  if (!collection) {
+    return false;
+  }
+
+  var itemIndex = -1;
+
+  // Find the item by ID
+  for (var i = 0; i < collection.items.length; i++) {
+    if (collection.items[i].id === itemId) {
+      itemIndex = i;
+      break;
+    }
+  }
+
+  if (itemIndex === -1) {
+    return false;
+  }
+
+  // Remove the item
+  collection.items.splice(itemIndex, 1);
+
+  // Update collection
+  updateCollection(collectionId, { items: collection.items });
+
+  return true;
+}
+
 // Initialize storage with default collections if needed
 function initializeStorage() {
   ensureDataDirExists();
@@ -176,5 +246,7 @@ module.exports = {
   updateCollection: updateCollection,
   deleteCollection: deleteCollection,
   addItemToCollection: addItemToCollection,
+  updateItemInCollection: updateItemInCollection,
+  deleteItemFromCollection: deleteItemFromCollection,
   initializeStorage: initializeStorage
 };
