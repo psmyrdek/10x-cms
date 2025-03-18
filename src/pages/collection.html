@@ -19,6 +19,25 @@
       <h1>{{collectionName}}</h1>
       <p>Manage items in this collection</p>
 
+      <!-- API Documentation -->
+      <div class="card mb-4">
+        <div class="card-header">
+          <h5 class="mb-0">API Documentation</h5>
+        </div>
+        <div class="card-body">
+          <p class="text-muted">Use these endpoints to interact with your collection programmatically:</p>
+          <div class="api-docs">
+            <pre class="mb-3"><code>GET /api/collections/{{collectionId}}</code>
+<span class="text-muted">Get collection details and schema</span></pre>
+            <pre class="mb-3"><code>GET /api/collections/{{collectionId}}/items</code>
+<span class="text-muted">Get all items in this collection</span></pre>
+            <pre class="mb-3"><code>GET /api/collections/{{collectionId}}/items/:itemId</code>
+<span class="text-muted">Get a single item by ID</span></pre>
+          </div>
+          <p class="small text-muted mt-3 mb-0">All endpoints return JSON and require no authentication</p>
+        </div>
+      </div>
+
       <div class="mb-4">
         <button id="addItemBtn" class="btn btn-primary">Add New Item</button>
       </div>

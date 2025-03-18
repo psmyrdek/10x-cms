@@ -3,6 +3,7 @@ var path = require("path");
 var templating = require("./src/server/templating");
 var storageModule = require("./src/server/storage");
 var mediaModule = require("./src/server/media");
+var apiRoutes = require("./src/server/api");
 var bodyParser = require("body-parser");
 var dotenv = require("dotenv");
 var fs = require("fs");
@@ -49,6 +50,9 @@ app.use("/vendor", express.static("public/vendor"));
 app.use("/images", express.static("public/images"));
 app.use(bodyParser.urlencoded({extended: true}));
 app.use(bodyParser.json());
+
+// API Routes
+app.use('/api', apiRoutes);
 
 // Simple cookie middleware
 app.use(function (req, res, next) {
