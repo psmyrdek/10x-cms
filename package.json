@@ -1,0 +1,27 @@
+{
+  "name": "10x-cms",
+  "version": "1.0.0",
+  "description": "A modern Content Management System built with performance and scalability in mind",
+  "main": "index.js",
+  "scripts": {
+    "start": "node index.js",
+    "dev": "nodemon index.js",
+    "test": "jest"
+  },
+  "author": "10xDevs",
+  "license": "ISC",
+  "dependencies": {
+    "body-parser": "^1.20.2",
+    "cors": "^2.8.5",
+    "dotenv": "^16.3.1",
+    "express": "4.21.2"
+  },
+  "devDependencies": {
+    "bower": "1.8.14",
+    "jest": "^29.7.0",
+    "nodemon": "^3.0.2"
+  },
+  "engines": {
+    "node": ">=14.0.0"
+  }
+}
