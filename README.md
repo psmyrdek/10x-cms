@@ -1,6 +1,8 @@
 # 10x CMS
 
-Nowoczesny System Zarządzania Treścią zbudowany z myślą o wydajności i skalowalności.
+![10x CMS](./public/images/banner.png)
+
+Nowoczesny System Zarządzania Treścią zbudowany z myślą o wydajności i skalowalności (i refaktoryzacji).
 
 ## Wymagania wstępne
 
@@ -10,11 +12,13 @@ Nowoczesny System Zarządzania Treścią zbudowany z myślą o wydajności i ska
 ## Rozpoczęcie pracy
 
 1. Zainstaluj globalne zależności:
+
 ```bash
 npm install -g bower
 ```
 
 2. Zainstaluj zależności projektu:
+
 ```bash
 npm install
 bower install
@@ -56,6 +60,7 @@ System umożliwia tworzenie i zarządzanie kolekcjami danych z niestandardowymi 
 - Zarządzać strukturą danych
 
 Dostępne typy pól:
+
 - Tekst (krótki)
 - Tekst (długi)
 - Liczba
