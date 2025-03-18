@@ -57,7 +57,10 @@
             <label class="form-label">Schema Fields</label>
             <div id="schemaFields">
               <div class="row mb-2 schema-field">
-                <div class="col-5">
+                <div class="col-1">
+                  <span class="drag-handle" title="Drag to reorder">⋮⋮</span>
+                </div>
+                <div class="col-4">
                   <input
                     type="text"
                     class="form-control"
@@ -149,3 +152,48 @@
     </div>
   </div>
 </div>
+
+<!-- Add styles for drag and drop functionality -->
+<style>
+  .drag-handle {
+    cursor: move;
+    color: #2677bf;
+    padding: 8px 0;
+    display: inline-block;
+    font-size: 18px;
+    font-weight: bold;
+    text-align: center;
+    vertical-align: middle;
+    line-height: 1;
+  }
+
+  /* Fix for the white artifact during drag */
+  .ui-sortable-helper {
+    display: flex;
+    background-color: #2d2f30 !important;
+    border: 1px dashed #292b2e;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.15);
+    width: 100% !important;
+  }
+
+  .ui-sortable-helper .row {
+    width: 100%;
+    margin: 0;
+  }
+
+  .ui-sortable-placeholder {
+    visibility: visible !important;
+    height: 46px !important;
+    background-color: #2d2f30 !important;
+    border: 1px dashed #292b2e;
+    margin-bottom: 8px;
+    width: 100% !important;
+  }
+
+  /* Ensure schema-field rows maintain proper width */
+  #schemaFields .schema-field {
+    width: 100%;
+    margin-left: 0;
+    margin-right: 0;
+  }
+</style>

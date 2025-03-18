@@ -52,7 +52,7 @@ app.use(bodyParser.urlencoded({extended: true}));
 app.use(bodyParser.json());
 
 // API Routes
-app.use('/api', apiRoutes);
+app.use("/api", apiRoutes);
 
 // Simple cookie middleware
 app.use(function (req, res, next) {
@@ -222,7 +222,7 @@ app.get("/collections/:id", requireAuth, function (req, res) {
   // Generate items HTML
   if (collection.items.length === 0) {
     itemsHtml =
-      '<div class="alert alert-info">No items in this collection yet. Add your first item to get started.</div>';
+      '<div class="alert alert-info text-dark">No items in this collection yet. Add your first item to get started.</div>';
   } else {
     itemsHtml =
       '<div class="table-responsive"><table class="table table-striped">';
