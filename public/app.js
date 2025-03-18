@@ -40,6 +40,14 @@ function initCollectionsPage() {
   var $confirmDeleteBtn = $("#confirmDeleteBtn");
   var collectionToDelete = null;
 
+  // Check if modal should be automatically opened (from query parameter)
+  var urlParams = new URLSearchParams(window.location.search);
+  if (urlParams.get('action') === 'create') {
+    setTimeout(function() {
+      $modal.modal("show");
+    }, 300);
+  }
+
   // Show modal when create button is clicked
   $("#createCollectionBtn").on("click", function () {
     $modal.modal("show");
@@ -893,6 +901,14 @@ function initMediaPage() {
   var $previewImage = $("#previewImage");
   var $previewDescription = $("#previewDescription");
   var $copyUrlBtn = $("#copyImageUrlBtn");
+  
+  // Check if modal should be automatically opened (from query parameter)
+  var urlParams = new URLSearchParams(window.location.search);
+  if (urlParams.get('action') === 'upload') {
+    setTimeout(function() {
+      $modal.modal("show");
+    }, 300);
+  }
 
   // Show upload modal when button is clicked
   $("#uploadImageBtn").on("click", function () {

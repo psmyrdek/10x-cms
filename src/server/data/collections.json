@@ -7,17 +7,8 @@
       "Desc": "text",
       "LeadImg": "media"
     },
-    "items": [
-      {
-        "Title": "test",
-        "Desc": "test",
-        "LeadImg": "/uploads/1742278681043.png",
-        "id": "1742289741437",
-        "createdAt": "2025-03-18T09:22:21.437Z",
-        "updatedAt": "2025-03-18T09:22:21.437Z"
-      }
-    ],
+    "items": [],
     "createdAt": "2025-03-18T06:18:22.002Z",
-    "updatedAt": "2025-03-18T09:22:21.437Z"
+    "updatedAt": "2025-03-18T09:22:41.314Z"
   }
 ]
