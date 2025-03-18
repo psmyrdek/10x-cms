@@ -50,6 +50,16 @@ Zależności frontendowe (jQuery i Bootstrap) zostaną zainstalowane w katalogu 
 └── package.json      # Konfiguracja zależności Node.js
 ```
 
+## Stack techniczny
+
+- Node.js - środowisko wykonawcze
+- Bower - zarządzanie zależnościami frontendowymi
+- jQuery & jQuery UI - obsługa interakcji po stronie klienta
+- Bootstrap - style komponentów
+- Express - framework backendowy
+- Multer - obsługa przesyłanych plików
+- Mocha & Chai - narzędzia do testowania
+
 ## Funkcjonalności
 
 ### Zarządzanie kolekcjami
@@ -97,6 +107,7 @@ System obsługuje webhooks, które umożliwiają powiadamianie zewnętrznych us�
 - Pełna integracja z systemem zarządzania kolekcjami
 
 Struktura danych wysyłanych przez webhook:
+
 ```json
 {
   "event": "create|update|delete",
@@ -104,7 +115,9 @@ Struktura danych wysyłanych przez webhook:
     "id": "collection_id",
     "name": "collection_name"
   },
-  "data": { /* dane elementu */ },
+  "data": {
+    /* dane elementu */
+  },
   "timestamp": "2025-03-18T10:59:57+01:00"
 }
 ```
