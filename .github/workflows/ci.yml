@@ -24,4 +24,4 @@ jobs:
         run: npm install -g bower
 
       - name: Install Bower dependencies
-        run: bower install --allow-root
+        run: bower install
