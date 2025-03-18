@@ -32,3 +32,4 @@ We're creating Legacy CMS app based on Node 14, Bower and jQuery.
 
 - Do not comment business logic in JavaScript
 - Do not try to start the app or server when finished working - just let me know
+- Always apply Bootstrap styles and classess for dark mode only

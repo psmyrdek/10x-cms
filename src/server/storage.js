@@ -125,6 +125,23 @@ function deleteCollection(id) {
   }
 
   if (index !== -1) {
+    // First remove associated webhooks
+    var webhooksPath = getCollectionPath("webhooks");
+    if (fs.existsSync(webhooksPath)) {
+      try {
+        var webhooks = JSON.parse(fs.readFileSync(webhooksPath, "utf8"));
+        // Filter out webhooks for this collection
+        webhooks = webhooks.filter(function(webhook) {
+          return webhook.collectionId !== id;
+        });
+        // Save updated webhooks
+        fs.writeFileSync(webhooksPath, JSON.stringify(webhooks, null, 2));
+      } catch (err) {
+        console.error("Error handling webhooks during collection deletion:", err);
+      }
+    }
+
+    // Then remove the collection
     collections.splice(index, 1);
 
     // Save updated collections
@@ -226,6 +243,82 @@ function deleteItemFromCollection(collectionId, itemId) {
   return true;
 }
 
+// Get webhooks for a collection
+function getWebhooks(collectionId) {
+  ensureDataDirExists();
+  var webhooksPath = getCollectionPath("webhooks");
+
+  if (!fs.existsSync(webhooksPath)) {
+    fs.writeFileSync(webhooksPath, JSON.stringify([], null, 2));
+    return [];
+  }
+
+  try {
+    var webhooks = JSON.parse(fs.readFileSync(webhooksPath, "utf8"));
+    return webhooks.filter(function(webhook) {
+      return webhook.collectionId === collectionId;
+    });
+  } catch (err) {
+    console.error("Error reading webhooks:", err);
+    return [];
+  }
+}
+
+// Add a new webhook
+function addWebhook(collectionId, url, events) {
+  ensureDataDirExists();
+  var webhooksPath = getCollectionPath("webhooks");
+  var webhooks = [];
+
+  if (fs.existsSync(webhooksPath)) {
+    try {
+      webhooks = JSON.parse(fs.readFileSync(webhooksPath, "utf8"));
+    } catch (err) {
+      console.error("Error reading webhooks:", err);
+    }
+  }
+
+  var webhook = {
+    id: Date.now().toString(),
+    collectionId: collectionId,
+    url: url,
+    events: events,
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString()
+  };
+
+  webhooks.push(webhook);
+  fs.writeFileSync(webhooksPath, JSON.stringify(webhooks, null, 2));
+  return webhook;
+}
+
+// Delete a webhook
+function deleteWebhook(webhookId) {
+  var webhooksPath = getCollectionPath("webhooks");
+  
+  if (!fs.existsSync(webhooksPath)) {
+    return false;
+  }
+
+  try {
+    var webhooks = JSON.parse(fs.readFileSync(webhooksPath, "utf8"));
+    var index = webhooks.findIndex(function(webhook) {
+      return webhook.id === webhookId;
+    });
+
+    if (index === -1) {
+      return false;
+    }
+
+    webhooks.splice(index, 1);
+    fs.writeFileSync(webhooksPath, JSON.stringify(webhooks, null, 2));
+    return true;
+  } catch (err) {
+    console.error("Error deleting webhook:", err);
+    return false;
+  }
+}
+
 // Initialize storage with default collections if needed
 function initializeStorage() {
   ensureDataDirExists();
@@ -248,5 +341,8 @@ module.exports = {
   addItemToCollection: addItemToCollection,
   updateItemInCollection: updateItemInCollection,
   deleteItemFromCollection: deleteItemFromCollection,
+  getWebhooks: getWebhooks,
+  addWebhook: addWebhook,
+  deleteWebhook: deleteWebhook,
   initializeStorage: initializeStorage
 };

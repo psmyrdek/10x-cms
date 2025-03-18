@@ -4,6 +4,7 @@ var templating = require("./src/server/templating");
 var storageModule = require("./src/server/storage");
 var mediaModule = require("./src/server/media");
 var apiRoutes = require("./src/server/api");
+var webhooksModule = require("./src/server/webhooks");
 var bodyParser = require("body-parser");
 var dotenv = require("dotenv");
 var fs = require("fs");
@@ -105,6 +106,109 @@ function renderPage(req, res) {
   res.send(content);
 }
 
+// Webhooks route
+app.get("/webhooks", requireAuth, function (req, res) {
+  var webhooksListHtml = "";
+  var collections = storageModule.getCollections();
+  var collectionsDropdownHtml = "";
+
+  if (collections.length === 0) {
+    collectionsDropdownHtml =
+      '<option value="">No collections available</option>';
+  } else {
+    collectionsDropdownHtml = '<option value="">Select collection...</option>';
+    for (var i = 0; i < collections.length; i++) {
+      var collection = collections[i];
+      collectionsDropdownHtml +=
+        '<option value="' +
+        collection.id +
+        '">' +
+        collection.name +
+        "</option>";
+    }
+
+    // Get all webhooks for each collection
+    var hasWebhooks = false;
+    for (var i = 0; i < collections.length; i++) {
+      var collection = collections[i];
+      var webhooks = storageModule.getWebhooks(collection.id);
+
+      if (webhooks.length > 0) {
+        hasWebhooks = true;
+        webhooksListHtml += '<div class="mb-4">';
+        webhooksListHtml += '<h6 class="mb-3">' + collection.name + "</h6>";
+
+        for (var j = 0; j < webhooks.length; j++) {
+          var webhook = webhooks[j];
+          webhooksListHtml += '<div class="card mb-2">';
+          webhooksListHtml += '<div class="card-body">';
+          webhooksListHtml +=
+            '<div class="d-flex justify-content-between align-items-center">';
+          webhooksListHtml += "<div>";
+          webhooksListHtml +=
+            '<p class="mb-1"><strong>URL:</strong> ' + webhook.url + "</p>";
+          webhooksListHtml +=
+            '<p class="mb-0"><small class="text-muted">Events: ' +
+            webhook.events.join(", ") +
+            "</small></p>";
+          webhooksListHtml += "</div>";
+          webhooksListHtml +=
+            '<button class="btn btn-danger btn-sm delete-webhook" data-id="' +
+            webhook.id +
+            '">Delete</button>';
+          webhooksListHtml += "</div>";
+          webhooksListHtml += "</div>";
+          webhooksListHtml += "</div>";
+        }
+
+        webhooksListHtml += "</div>";
+      }
+    }
+
+    if (!hasWebhooks) {
+      webhooksListHtml = "<p>No webhooks configured yet.</p>";
+    }
+  }
+
+  var content = templating.renderPage("webhooks", req, {
+    webhooksListHtml: webhooksListHtml,
+    collectionsDropdownHtml: collectionsDropdownHtml,
+  });
+
+  if (!content) {
+    return res.status(500).send("Error loading template");
+  }
+
+  res.send(content);
+});
+
+// Webhooks API routes
+app.post("/api/webhooks", requireAuth, function (req, res) {
+  var collectionId = req.body.collection;
+  var url = req.body.url;
+  var events = [];
+
+  if (req.body.event_create) events.push("create");
+  if (req.body.event_update) events.push("update");
+  if (req.body.event_delete) events.push("delete");
+
+  if (!collectionId || !url || events.length === 0) {
+    return res.status(400).json({error: "Missing required fields"});
+  }
+
+  var webhook = storageModule.addWebhook(collectionId, url, events);
+  res.json(webhook);
+});
+
+app.delete("/api/webhooks/:id", requireAuth, function (req, res) {
+  var success = storageModule.deleteWebhook(req.params.id);
+  if (success) {
+    res.json({success: true});
+  } else {
+    res.status(404).json({error: "Webhook not found"});
+  }
+});
+
 // Collections routes
 app.get("/collections", requireAuth, function (req, res) {
   var collections = storageModule.getCollections();
@@ -112,7 +216,7 @@ app.get("/collections", requireAuth, function (req, res) {
 
   if (collections.length === 0) {
     collectionsHtml =
-      '<div class="col-12"><div class="alert alert-info">No collections found. Create your first collection to get started.</div></div>';
+      '<div class="col-12"><div class="alert alert-info text-dark">No collections found. Create your first collection to get started.</div></div>';
   } else {
     for (var i = 0; i < collections.length; i++) {
       var collection = collections[i];
@@ -293,6 +397,10 @@ app.post("/api/collections", requireAuth, function (req, res) {
   }
 
   var collection = storageModule.createCollection(name, schema);
+  
+  // Notify webhooks about the collection creation
+  webhooksModule.onCollectionCreated(collection);
+  
   res.json({success: true, collection: collection});
 });
 
@@ -314,6 +422,10 @@ app.post("/api/collections/:id/items", requireAuth, function (req, res) {
   }
 
   var updatedCollection = storageModule.addItemToCollection(collectionId, item);
+  
+  // Notify webhooks about the item creation
+  webhooksModule.onItemCreated(collectionId, item);
+  
   res.json({success: true, item: item});
 });
 
@@ -347,6 +459,9 @@ app.put(
     if (!result) {
       return res.status(404).json({error: "Item not found"});
     }
+    
+    // Notify webhooks about the item update
+    webhooksModule.onItemUpdated(collectionId, result);
 
     res.json({success: true, item: result});
   }
@@ -362,6 +477,9 @@ app.delete(
     var success = storageModule.deleteItemFromCollection(collectionId, itemId);
 
     if (success) {
+      // Notify webhooks about the item deletion
+      webhooksModule.onItemDeleted(collectionId, itemId);
+      
       res.json({success: true, message: "Item deleted successfully"});
     } else {
       res.status(404).json({error: "Collection or item not found"});
@@ -380,6 +498,9 @@ app.delete("/api/collections/:id", requireAuth, function (req, res) {
   var success = storageModule.deleteCollection(collectionId);
 
   if (success) {
+    // Notify webhooks about the collection deletion
+    webhooksModule.onCollectionDeleted(collectionId);
+    
     res.json({success: true, message: "Collection deleted successfully"});
   } else {
     res.status(404).json({error: "Collection not found"});

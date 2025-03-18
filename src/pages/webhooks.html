@@ -1,0 +1,77 @@
+<!-- @layout:base -->
+
+<div class="container mt-4">
+  <div class="row">
+    <div class="col-12">
+      <h1>Webhooks</h1>
+      <p>
+        Configure webhooks to notify external services when content changes.
+      </p>
+
+      <div class="card mb-4">
+        <div class="card-header">
+          <h5 class="card-title mb-0">Add New Webhook</h5>
+        </div>
+        <div class="card-body">
+          <form id="webhookForm">
+            <div class="mb-3">
+              <label for="collection" class="form-label">Collection</label>
+              <select class="form-select" id="collection" required>
+                {{collectionsDropdownHtml}}
+              </select>
+            </div>
+            <div class="mb-3">
+              <label for="url" class="form-label">Webhook URL</label>
+              <input type="url" class="form-control" id="url" required />
+            </div>
+            <div class="mb-3">
+              <label class="form-label">Events</label>
+              <div class="form-check">
+                <input
+                  class="form-check-input"
+                  type="checkbox"
+                  id="event_create"
+                />
+                <label class="form-check-label" for="event_create">
+                  Content Created
+                </label>
+              </div>
+              <div class="form-check">
+                <input
+                  class="form-check-input"
+                  type="checkbox"
+                  id="event_update"
+                />
+                <label class="form-check-label" for="event_update">
+                  Content Updated
+                </label>
+              </div>
+              <div class="form-check">
+                <input
+                  class="form-check-input"
+                  type="checkbox"
+                  id="event_delete"
+                />
+                <label class="form-check-label" for="event_delete">
+                  Content Deleted
+                </label>
+              </div>
+            </div>
+            <button type="submit" class="btn btn-primary">Add Webhook</button>
+          </form>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-header">
+          <h5 class="card-title mb-0">Active Webhooks</h5>
+        </div>
+        <div class="card-body">
+          <div id="webhooksList">
+            {{webhooksListHtml}}
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

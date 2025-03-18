@@ -26,6 +26,67 @@ $(document).ready(function () {
   if (window.location.pathname === "/media") {
     initMediaPage();
   }
+
+  // Webhook form submission
+  $("#webhookForm").on("submit", function (e) {
+    e.preventDefault();
+
+    var data = {
+      collection: $("#collection").val(),
+      url: $("#url").val(),
+      event_create: $("#event_create").is(":checked"),
+      event_update: $("#event_update").is(":checked"),
+      event_delete: $("#event_delete").is(":checked"),
+    };
+
+    // Validate form
+    if (!data.collection) {
+      alert("Please select a collection");
+      return;
+    }
+
+    if (!data.url) {
+      alert("Please enter a webhook URL");
+      return;
+    }
+
+    if (!data.event_create && !data.event_update && !data.event_delete) {
+      alert("Please select at least one event");
+      return;
+    }
+
+    $.ajax({
+      url: "/api/webhooks",
+      method: "POST",
+      data: data,
+      success: function () {
+        window.location.reload();
+      },
+      error: function (xhr) {
+        alert(
+          xhr.responseJSON ? xhr.responseJSON.error : "Error creating webhook"
+        );
+      },
+    });
+  });
+
+  // Delete webhook
+  $(document).on("click", ".delete-webhook", function () {
+    var webhookId = $(this).data("id");
+
+    if (confirm("Are you sure you want to delete this webhook?")) {
+      $.ajax({
+        url: "/api/webhooks/" + webhookId,
+        method: "DELETE",
+        success: function () {
+          window.location.reload();
+        },
+        error: function () {
+          alert("Error deleting webhook");
+        },
+      });
+    }
+  });
 });
 
 function initCollectionsPage() {
@@ -42,8 +103,8 @@ function initCollectionsPage() {
 
   // Check if modal should be automatically opened (from query parameter)
   var urlParams = new URLSearchParams(window.location.search);
-  if (urlParams.get('action') === 'create') {
-    setTimeout(function() {
+  if (urlParams.get("action") === "create") {
+    setTimeout(function () {
       $modal.modal("show");
     }, 300);
   }
@@ -264,7 +325,7 @@ function initCollectionsPage() {
         // If no collections left, show the "no collections" message
         if ($("#collectionsContainer .col-md-4").length === 0) {
           $("#collectionsContainer").html(
-            '<div class="col-12"><div class="alert alert-info">No collections found. Create your first collection to get started.</div></div>'
+            '<div class="col-12"><div class="alert alert-info text-dark">No collections found. Create your first collection to get started.</div></div>'
           );
         }
       },
@@ -901,11 +962,11 @@ function initMediaPage() {
   var $previewImage = $("#previewImage");
   var $previewDescription = $("#previewDescription");
   var $copyUrlBtn = $("#copyImageUrlBtn");
-  
+
   // Check if modal should be automatically opened (from query parameter)
   var urlParams = new URLSearchParams(window.location.search);
-  if (urlParams.get('action') === 'upload') {
-    setTimeout(function() {
+  if (urlParams.get("action") === "upload") {
+    setTimeout(function () {
       $modal.modal("show");
     }, 300);
   }

@@ -1,14 +1,13 @@
 [
   {
-    "id": "1742278702002",
-    "name": "BlogPosts",
+    "id": "1742291770128",
+    "name": "Article",
     "schema": {
       "Title": "string",
-      "Desc": "text",
-      "LeadImg": "media"
+      "Content": "text"
     },
     "items": [],
-    "createdAt": "2025-03-18T06:18:22.002Z",
-    "updatedAt": "2025-03-18T09:22:41.314Z"
+    "createdAt": "2025-03-18T09:56:10.128Z",
+    "updatedAt": "2025-03-18T09:59:37.239Z"
   }
 ]

@@ -42,7 +42,8 @@ Zależności frontendowe (jQuery i Bootstrap) zostaną zainstalowane w katalogu 
 │       ├── data/     # Pliki JSON z danymi
 │       ├── media.js  # Obsługa biblioteki mediów
 │       ├── storage.js # Obsługa kolekcji danych
-│       └── templating.js # System szablonów
+│       ├── templating.js # System szablonów
+│       └── webhooks.js # Obsługa webhooków
 ├── index.js          # Główny plik wejściowy aplikacji
 ├── bower.json        # Konfiguracja zależności frontendowych
 ├── .bowerrc          # Konfiguracja Bower
@@ -85,6 +86,28 @@ Możliwość dodawania pól typu "media" do kolekcji:
 - Wybór obrazów z biblioteki mediów podczas tworzenia elementów kolekcji
 - Wyświetlanie miniatur obrazów w tabeli elementów kolekcji
 - Wyszukiwanie i filtrowanie obrazów w selektorze mediów
+
+### Webhooks
+
+System obsługuje webhooks, które umożliwiają powiadamianie zewnętrznych usług o zmianach w kolekcjach:
+
+- Rejestrowanie webhooków dla konkretnych kolekcji
+- Konfigurowanie zdarzeń wyzwalających webhook (tworzenie, aktualizacja, usunięcie)
+- Automatyczne wysyłanie powiadomień HTTP/HTTPS do zdefiniowanych adresów URL
+- Pełna integracja z systemem zarządzania kolekcjami
+
+Struktura danych wysyłanych przez webhook:
+```json
+{
+  "event": "create|update|delete",
+  "collection": {
+    "id": "collection_id",
+    "name": "collection_name"
+  },
+  "data": { /* dane elementu */ },
+  "timestamp": "2025-03-18T10:59:57+01:00"
+}
+```
 
 ## Uruchamianie aplikacji
 
