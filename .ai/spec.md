@@ -1,4 +1,4 @@
-# 10xCMS
+# CMS Pro
 
 A versatile Content Management System (CMS) for managing and publishing content on websites.
 
