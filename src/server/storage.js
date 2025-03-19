@@ -57,7 +57,7 @@ async function addItemToCollection(collectionId, item) {
 
 async function updateItemInCollection(collectionId, itemId, updates) {
   const updateData = {
-    data: updates,
+    data: JSON.stringify(updates),
     updated_at: new Date().toISOString(),
   };
 

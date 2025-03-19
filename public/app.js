@@ -634,31 +634,28 @@ function initCollectionDetailPage() {
           var $row = $('tr[data-id="' + itemId + '"]');
           var item = response.item;
 
+          // Parse the JSON data string
+          var itemData = JSON.parse(item.data);
+
           // Clear the row
           $row.empty();
 
-          // Add cells for each field
-          for (var field in item) {
-            if (
-              field !== "id" &&
-              field !== "createdAt" &&
-              field !== "updatedAt"
-            ) {
-              var value = item[field] || "";
+          // Add cells for each field in itemData
+          for (var field in itemData) {
+            var value = itemData[field] || "";
 
-              // Check if this is a media field
-              if (
-                value.startsWith("/uploads/") ||
-                value.startsWith("/public/uploads/")
-              ) {
-                $row.append(
-                  '<td><img src="' +
-                    value +
-                    '" alt="Media" class="img-thumbnail" style="max-width: 50px; max-height: 50px;"></td>'
-                );
-              } else {
-                $row.append("<td>" + value + "</td>");
-              }
+            // Check if this is a media field (assuming paths start with /uploads/ or /public/uploads/)
+            if (
+              value.startsWith("/uploads/") ||
+              value.startsWith("/public/uploads/")
+            ) {
+              $row.append(
+                '<td><img src="' +
+                  value +
+                  '" alt="Media" class="img-thumbnail" style="max-width: 50px; max-height: 50px;"></td>'
+              );
+            } else {
+              $row.append("<td>" + value + "</td>");
             }
           }
 
@@ -672,13 +669,7 @@ function initCollectionDetailPage() {
           $row.append(actionsHtml);
 
           // Reinitialize the buttons
-          $row.find(".edit-item-btn").on("click", function () {
-            $(".edit-item-btn").trigger("click");
-          });
-
-          $row.find(".delete-item-btn").on("click", function () {
-            $(".delete-item-btn").trigger("click");
-          });
+          initializeRowButtons($row);
         } else {
           // Add the new item to the table without reloading the page
           if (response.item) {
@@ -1029,6 +1020,115 @@ function initCollectionDetailPage() {
       });
     }
   });
+
+  // Add this function inside initCollectionDetailPage
+  function initializeRowButtons($row) {
+    // Initialize edit button
+    $row.find(".edit-item-btn").on("click", function () {
+      var $row = $(this).closest("tr");
+      var itemId = $row.data("id");
+
+      // Get the collection schema
+      var schema = {};
+      $("table thead th").each(function (index) {
+        if (index < $("table thead th").length - 1) {
+          schema[$(this).text()] = "string"; // Default to string type
+        }
+      });
+
+      // Get the current item values
+      var itemData = {};
+      $row.find("td").each(function (index) {
+        if (index < $row.find("td").length - 1) {
+          var fieldName = $("table thead th").eq(index).text();
+
+          // Check if this is a media field
+          if ($(this).find("img").length > 0) {
+            itemData[fieldName] = $(this).find("img").attr("src");
+          } else {
+            var cellText = $(this).text();
+            itemData[fieldName] = cellText;
+          }
+        }
+      });
+
+      // Reset and fill the form
+      $("#itemForm")[0].reset();
+      for (var field in itemData) {
+        var $field = $("#" + field);
+        if ($field.length > 0) {
+          $field.val(itemData[field]);
+
+          // Handle media field previews
+          if (
+            $field.hasClass("media-field-input") ||
+            $("#" + field + "_display").length > 0
+          ) {
+            $("#" + field + "_display").val(itemData[field]);
+            $("#" + field + "_preview").html(
+              '<img src="' +
+                itemData[field] +
+                '" class="img-thumbnail" style="max-height: 100px;">'
+            );
+          }
+        }
+      }
+
+      // Update modal for edit mode
+      $("#itemModal .modal-title").text("Edit Item");
+      $("#saveItemBtn")
+        .text("Update Item")
+        .data("mode", "edit")
+        .data("item-id", itemId);
+
+      // Show modal
+      $("#itemModal").modal("show");
+    });
+
+    // Initialize delete button
+    $row.find(".delete-item-btn").on("click", function () {
+      var $row = $(this).closest("tr");
+      var itemId = $row.data("id");
+
+      if (
+        confirm(
+          "Are you sure you want to delete this item? This action cannot be undone."
+        )
+      ) {
+        showLoader();
+        $.ajax({
+          url: "/api/collections/" + collectionId + "/items/" + itemId,
+          method: "DELETE",
+          success: function (response) {
+            hideLoader();
+            showGlobalAlert("Item deleted successfully!");
+            $row.remove();
+
+            // Update item count if displayed
+            var $itemCount = $(".item-count");
+            if ($itemCount.length > 0) {
+              var currentCount = parseInt($itemCount.text(), 10);
+              $itemCount.text(Math.max(0, currentCount - 1));
+            }
+
+            // Show "no items" message if table is empty
+            if ($("tbody tr").length === 0) {
+              $(".table-responsive").replaceWith(
+                '<p class="alert alert-info text-dark">No items in this collection yet. Add your first item to get started.</p>'
+              );
+            }
+          },
+          error: function (xhr) {
+            hideLoader();
+            showGlobalAlert(
+              "Error deleting item: " + xhr.responseText,
+              "danger"
+            );
+          },
+        });
+      }
+    });
+  }
 }
 
 function initMediaPage() {

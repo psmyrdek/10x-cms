@@ -52,34 +52,62 @@
               </p>
               <div class="api-docs">
                 <div
-                  class="endpoint-card mb-4 p-3 bg-black bg-opacity-25 rounded"
+                  class="endpoint-card mb-4 p-3 bg-black bg-opacity-25 rounded d-flex justify-content-between align-items-start"
                 >
-                  <code class="d-block text-primary mb-2"
-                    >GET /api/collections/{{collectionId}}</code
+                  <div>
+                    <code class="d-block text-primary mb-2"
+                      >GET /api/collections/{{collectionId}}</code
+                    >
+                    <span class="text-light opacity-75"
+                      >Get collection details and schema</span
+                    >
+                  </div>
+                  <a
+                    href="/api/collections/{{collectionId}}"
+                    target="_blank"
+                    class="ms-3 text-light text-decoration-none"
+                    title="Open in new tab"
                   >
-                  <span class="text-light opacity-75"
-                    >Get collection details and schema</span
-                  >
+                    <i class="bi bi-box-arrow-up-right"></i>
+                  </a>
                 </div>
                 <div
-                  class="endpoint-card mb-4 p-3 bg-black bg-opacity-25 rounded"
+                  class="endpoint-card mb-4 p-3 bg-black bg-opacity-25 rounded d-flex justify-content-between align-items-start"
                 >
-                  <code class="d-block text-primary mb-2"
-                    >GET /api/collections/{{collectionId}}/items</code
+                  <div>
+                    <code class="d-block text-primary mb-2"
+                      >GET /api/collections/{{collectionId}}/items</code
+                    >
+                    <span class="text-light opacity-75"
+                      >Get all items in this collection</span
+                    >
+                  </div>
+                  <a
+                    href="/api/collections/{{collectionId}}/items"
+                    target="_blank"
+                    class="ms-3 text-light text-decoration-none"
+                    title="Open in new tab"
                   >
-                  <span class="text-light opacity-75"
-                    >Get all items in this collection</span
-                  >
+                    <i class="bi bi-box-arrow-up-right"></i>
+                  </a>
                 </div>
                 <div
-                  class="endpoint-card mb-4 p-3 bg-black bg-opacity-25 rounded"
+                  class="endpoint-card mb-4 p-3 bg-black bg-opacity-25 rounded d-flex justify-content-between align-items-start"
                 >
-                  <code class="d-block text-primary mb-2"
-                    >GET /api/collections/{{collectionId}}/items/:itemId</code
+                  <div>
+                    <code class="d-block text-primary mb-2"
+                      >GET /api/collections/{{collectionId}}/items/:itemId</code
+                    >
+                    <span class="text-light opacity-75"
+                      >Get a single item by ID</span
+                    >
+                  </div>
+                  <span
+                    class="ms-3 text-light opacity-50"
+                    title="Requires item ID parameter"
                   >
-                  <span class="text-light opacity-75"
-                    >Get a single item by ID</span
-                  >
+                    <i class="bi bi-info-circle"></i>
+                  </span>
                 </div>
               </div>
               <div class="mt-4 pt-3 border-top border-secondary">
