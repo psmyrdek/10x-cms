@@ -118,7 +118,7 @@ function renderPage(pageName, req, customVariables) {
 
   var meta = parseMetaTags(content);
   var variables = {
-    title: meta.title || "CMS Pro",
+    title: meta.title || "10xCMS",
     currentYear: new Date().getFullYear(),
     // Add authentication status if request object is provided
     isAuthenticated: req && req.cookies && req.cookies.auth ? true : false,
