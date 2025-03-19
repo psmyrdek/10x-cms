@@ -20,30 +20,76 @@
       <p>Manage items in this collection</p>
 
       <!-- API Documentation -->
-      <div class="card mb-4">
-        <div class="card-header">
-          <h5 class="mb-0">API Documentation</h5>
-        </div>
-        <div class="card-body">
-          <p class="text-muted">
-            Use these endpoints to interact with your collection
-            programmatically:
-          </p>
-          <div class="api-docs">
-            <pre class="mb-3"><code>GET /api/collections/{{collectionId}}</code>
-<span class="text-muted">Get collection details and schema</span></pre>
-            <pre
-              class="mb-3"
-            ><code>GET /api/collections/{{collectionId}}/items</code>
-<span class="text-muted">Get all items in this collection</span></pre>
-            <pre
-              class="mb-3"
-            ><code>GET /api/collections/{{collectionId}}/items/:itemId</code>
-<span class="text-muted">Get a single item by ID</span></pre>
+      <div class="accordion accordion-dark mb-4" id="apiDocsAccordion">
+        <div class="accordion-item bg-dark text-light">
+          <h2 class="accordion-header">
+            <button
+              class="accordion-button collapsed bg-dark text-light border-0"
+              type="button"
+              data-bs-toggle="collapse"
+              data-bs-target="#apiDocsContent"
+              aria-expanded="false"
+              aria-controls="apiDocsContent"
+              style="
+                box-shadow: none;
+                --bs-accordion-btn-icon: url('data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 16 16%22 fill=%22rgba(255,255,255,0.75)%22><path fill-rule=%22evenodd%22 d=%22M1.646 4.646a.5.5 0 0 1 .708 0L8 10.293l5.646-5.647a.5.5 0 0 1 .708.708l-6 6a.5.5 0 0 1-.708 0l-6-6a.5.5 0 0 1 0-.708z%22/></svg>');
+                --bs-accordion-btn-active-icon: url('data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 16 16%22 fill=%22rgba(255,255,255,0.75)%22><path fill-rule=%22evenodd%22 d=%22M1.646 4.646a.5.5 0 0 1 .708 0L8 10.293l5.646-5.647a.5.5 0 0 1 .708.708l-6 6a.5.5 0 0 1-.708 0l-6-6a.5.5 0 0 1 0-.708z%22/></svg>');
+              "
+            >
+              <i class="bi bi-code-square me-2"></i>
+              API Documentation
+            </button>
+          </h2>
+          <div
+            id="apiDocsContent"
+            class="accordion-collapse collapse"
+            data-bs-parent="#apiDocsAccordion"
+          >
+            <div class="accordion-body bg-dark p-4">
+              <p class="text-light opacity-75 mb-4">
+                Use these endpoints to interact with your collection
+                programmatically:
+              </p>
+              <div class="api-docs">
+                <div
+                  class="endpoint-card mb-4 p-3 bg-black bg-opacity-25 rounded"
+                >
+                  <code class="d-block text-primary mb-2"
+                    >GET /api/collections/{{collectionId}}</code
+                  >
+                  <span class="text-light opacity-75"
+                    >Get collection details and schema</span
+                  >
+                </div>
+                <div
+                  class="endpoint-card mb-4 p-3 bg-black bg-opacity-25 rounded"
+                >
+                  <code class="d-block text-primary mb-2"
+                    >GET /api/collections/{{collectionId}}/items</code
+                  >
+                  <span class="text-light opacity-75"
+                    >Get all items in this collection</span
+                  >
+                </div>
+                <div
+                  class="endpoint-card mb-4 p-3 bg-black bg-opacity-25 rounded"
+                >
+                  <code class="d-block text-primary mb-2"
+                    >GET /api/collections/{{collectionId}}/items/:itemId</code
+                  >
+                  <span class="text-light opacity-75"
+                    >Get a single item by ID</span
+                  >
+                </div>
+              </div>
+              <div class="mt-4 pt-3 border-top border-secondary">
+                <p class="small text-light opacity-50 mb-0">
+                  <i class="bi bi-info-circle me-2"></i>
+                  All endpoints return JSON and require no authentication
+                </p>
+              </div>
+            </div>
           </div>
-          <p class="small text-muted mt-3 mb-0">
-            All endpoints return JSON and require no authentication
-          </p>
         </div>
       </div>
 

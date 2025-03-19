@@ -426,6 +426,22 @@ function initCollectionDetailPage() {
     $("#itemModal").modal("show");
   });
 
+  // Handle modal hide event to always reset form
+  $("#itemModal").on("hidden.bs.modal", function () {
+    // Reset the form
+    $("#itemForm")[0].reset();
+
+    // Reset modal title and button text/data
+    $("#itemModal .modal-title").text("Add New Item");
+    $("#saveItemBtn")
+      .text("Add Item")
+      .data("mode", "add")
+      .removeData("item-id");
+
+    // Clear any media previews
+    $(".media-preview-container").empty();
+  });
+
   // Media selector button click handler
   $(document).on("click", ".media-selector-btn", function () {
     currentMediaField = $(this).data("field");
@@ -679,7 +695,7 @@ function initCollectionDetailPage() {
               tableHtml += "<thead><tr>";
 
               // Add headers based on schema
-              for (var field in item) {
+              for (var field in item.data) {
                 if (
                   field !== "id" &&
                   field !== "createdAt" &&
@@ -699,13 +715,13 @@ function initCollectionDetailPage() {
             var $newRow = $('<tr data-id="' + item.id + '"></tr>');
 
             // Add cells for each field
-            for (var field in item) {
+            for (var field in item.data) {
               if (
                 field !== "id" &&
                 field !== "createdAt" &&
                 field !== "updatedAt"
               ) {
-                var value = item[field] || "";
+                var value = item.data[field] || "";
 
                 // Check if this is a media field
                 if (
