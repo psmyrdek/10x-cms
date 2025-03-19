@@ -26,30 +26,6 @@ bower install
 
 Zależności frontendowe (jQuery i Bootstrap) zostaną zainstalowane w katalogu `public/vendor`.
 
-## Struktura projektu
-
-```
-.
-├── public/
-│   ├── app.js        # Główna logika aplikacji po stronie klienta
-│   ├── uploads/      # Katalog na przesłane pliki mediów
-│   └── vendor/       # Zależności frontendowe zarządzane przez Bower
-├── src/
-│   ├── components/   # Komponenty HTML
-│   ├── layout/       # Szablony układu strony
-│   ├── pages/        # Strony HTML
-│   └── server/       # Logika po stronie serwera
-│       ├── data/     # Pliki JSON z danymi
-│       ├── media.js  # Obsługa biblioteki mediów
-│       ├── storage.js # Obsługa kolekcji danych
-│       ├── templating.js # System szablonów
-│       └── webhooks.js # Obsługa webhooków
-├── index.js          # Główny plik wejściowy aplikacji
-├── bower.json        # Konfiguracja zależności frontendowych
-├── .bowerrc          # Konfiguracja Bower
-└── package.json      # Konfiguracja zależności Node.js
-```
-
 ## Stack techniczny
 
 - Node.js - środowisko wykonawcze
@@ -61,6 +37,14 @@ Zależności frontendowe (jQuery i Bootstrap) zostaną zainstalowane w katalogu 
 - Mocha & Chai - narzędzia do testowania
 
 ## Funkcjonalności
+
+### tl;dr
+
+1. Utworzenie kolekcji (definicja typu elementów - np. Artykuł)
+2. Dodanie elementów do kolekcji (tworzenie elementów - np. Nowy artykuł)
+3. Zarządzanie elementami (przeglądanie,edycja, usuwanie)
+4. Rejestracja webhooków (reagowanie na zmiany w kolekcji)
+5. Udostępnianie kolekcji przez API (automatycznie)
 
 ### Zarządzanie kolekcjami
 
