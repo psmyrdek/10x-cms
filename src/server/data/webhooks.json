@@ -34,5 +34,17 @@
     ],
     "createdAt": "2025-03-18T09:58:15.365Z",
     "updatedAt": "2025-03-18T09:58:15.365Z"
+  },
+  {
+    "id": "1742381780979",
+    "collectionId": "1742291770128",
+    "url": "https://localhost:3005",
+    "events": [
+      "create",
+      "update",
+      "delete"
+    ],
+    "createdAt": "2025-03-19T10:56:20.979Z",
+    "updatedAt": "2025-03-19T10:56:20.979Z"
   }
 ]

@@ -12,6 +12,33 @@ $(document).ready(function () {
     }
   });
 
+  // Create alert container at document root if it doesn't exist
+  if ($("#globalAlertContainer").length === 0) {
+    $("body").prepend(
+      '<div id="globalAlertContainer" style="position: fixed; top: 20px; left: 50%; transform: translateX(-50%); z-index: 9999; width: 80%; max-width: 800px;"></div>'
+    );
+  }
+
+  // Function to show global alerts
+  window.showGlobalAlert = function (message, type) {
+    var $alertContainer = $(
+      '<div class="alert alert-' +
+        (type || "success") +
+        ' alert-dismissible fade show text-dark" role="alert"></div>'
+    );
+    $alertContainer.text(message);
+    $alertContainer.append(
+      '<button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>'
+    );
+
+    $("#globalAlertContainer").append($alertContainer);
+
+    // Auto-remove after 5 seconds
+    setTimeout(function () {
+      $alertContainer.alert("close");
+    }, 5000);
+  };
+
   // Collections page functionality
   if (window.location.pathname === "/collections") {
     initCollectionsPage();
@@ -41,17 +68,17 @@ $(document).ready(function () {
 
     // Validate form
     if (!data.collection) {
-      alert("Please select a collection");
+      showGlobalAlert("Please select a collection", "danger");
       return;
     }
 
     if (!data.url) {
-      alert("Please enter a webhook URL");
+      showGlobalAlert("Please enter a webhook URL", "danger");
       return;
     }
 
     if (!data.event_create && !data.event_update && !data.event_delete) {
-      alert("Please select at least one event");
+      showGlobalAlert("Please select at least one event", "danger");
       return;
     }
 
@@ -63,8 +90,9 @@ $(document).ready(function () {
         window.location.reload();
       },
       error: function (xhr) {
-        alert(
-          xhr.responseJSON ? xhr.responseJSON.error : "Error creating webhook"
+        showGlobalAlert(
+          xhr.responseJSON ? xhr.responseJSON.error : "Error creating webhook",
+          "danger"
         );
       },
     });
@@ -82,7 +110,7 @@ $(document).ready(function () {
           window.location.reload();
         },
         error: function () {
-          alert("Error deleting webhook");
+          showGlobalAlert("Error deleting webhook", "danger");
         },
       });
     }
@@ -228,6 +256,9 @@ function initCollectionsPage() {
 
         $("#collectionsContainer").append(collectionHtml);
 
+        // Show success message
+        showGlobalAlert("Collection created successfully!");
+
         // Initialize delete button for the new collection
         var $newDeleteBtn = $(
           "#collectionsContainer .delete-collection-btn"
@@ -256,7 +287,10 @@ function initCollectionsPage() {
         });
       },
       error: function (xhr) {
-        alert("Error creating collection: " + xhr.responseText);
+        showGlobalAlert(
+          "Error creating collection: " + xhr.responseText,
+          "danger"
+        );
       },
     });
   });
@@ -322,6 +356,9 @@ function initCollectionsPage() {
           }
         });
 
+        // Show success message
+        showGlobalAlert("Collection deleted successfully!");
+
         // If no collections left, show the "no collections" message
         if ($("#collectionsContainer .col-md-4").length === 0) {
           $("#collectionsContainer").html(
@@ -334,7 +371,10 @@ function initCollectionsPage() {
         $deleteModal.modal("hide");
 
         // Show error
-        alert("Error deleting collection: " + xhr.responseText);
+        showGlobalAlert(
+          "Error deleting collection: " + xhr.responseText,
+          "danger"
+        );
       },
     });
   });
@@ -371,6 +411,15 @@ function initCollectionDetailPage() {
   var $mediaSelectorModal = $("#mediaSelectorModal");
   var $mediaSelectorContainer = $("#mediaSelectorContainer");
   var currentMediaField = null;
+
+  // Show/hide loading indicator functions
+  function showLoader() {
+    $("#fullPageLoader").removeClass("d-none");
+  }
+
+  function hideLoader() {
+    $("#fullPageLoader").addClass("d-none");
+  }
 
   // Add item button click handler
   $("#addItemBtn").on("click", function () {
@@ -504,6 +553,9 @@ function initCollectionDetailPage() {
       return;
     }
 
+    // Show loading indicator
+    showLoader();
+
     // Collect form data
     var formData = {};
 
@@ -535,24 +587,18 @@ function initCollectionDetailPage() {
       method: method,
       data: formData,
       success: function (response) {
+        // Hide loading indicator
+        hideLoader();
+
         // Hide modal
         $("#itemModal").modal("hide");
 
         // Show success message
-        var $alertContainer = $(
-          '<div class="alert alert-success alert-dismissible fade show text-dark" role="alert"></div>'
-        );
-        $alertContainer.text(
+        showGlobalAlert(
           mode === "edit"
             ? "Item updated successfully!"
             : "Item added successfully!"
         );
-        $alertContainer.append(
-          '<button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>'
-        );
-
-        // Add the alert to the page
-        $(".container").first().prepend($alertContainer);
 
         // Reset the form
         $("#itemForm")[0].reset();
@@ -716,7 +762,17 @@ function initCollectionDetailPage() {
                   if ($(this).find("img").length > 0) {
                     itemData[fieldName] = $(this).find("img").attr("src");
                   } else {
-                    itemData[fieldName] = $(this).text();
+                    var cellText = $(this).text();
+                    // Try to parse JSON if it looks like a stringified object
+                    if (cellText.startsWith("{") && cellText.endsWith("}")) {
+                      try {
+                        itemData[fieldName] = JSON.parse(cellText);
+                      } catch (e) {
+                        itemData[fieldName] = cellText;
+                      }
+                    } else {
+                      itemData[fieldName] = cellText;
+                    }
                   }
                 }
               });
@@ -767,22 +823,19 @@ function initCollectionDetailPage() {
                   "Are you sure you want to delete this item? This action cannot be undone."
                 )
               ) {
+                // Show loading indicator
+                showLoader();
+
                 // Send AJAX request to delete item
                 $.ajax({
                   url: "/api/collections/" + collectionId + "/items/" + itemId,
                   method: "DELETE",
                   success: function (response) {
-                    // Show success message
-                    var $alertContainer = $(
-                      '<div class="alert alert-success alert-dismissible fade show text-dark" role="alert"></div>'
-                    );
-                    $alertContainer.text("Item deleted successfully!");
-                    $alertContainer.append(
-                      '<button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>'
-                    );
+                    // Hide loading indicator
+                    hideLoader();
 
-                    // Add the alert to the page
-                    $(".container").first().prepend($alertContainer);
+                    // Show success message
+                    showGlobalAlert("Item deleted successfully!");
 
                     // Remove the row from the table
                     $row.remove();
@@ -802,7 +855,12 @@ function initCollectionDetailPage() {
                     }
                   },
                   error: function (xhr) {
-                    alert("Error deleting item: " + xhr.responseText);
+                    // Hide loading indicator
+                    hideLoader();
+                    showGlobalAlert(
+                      "Error deleting item: " + xhr.responseText,
+                      "danger"
+                    );
                   },
                 });
               }
@@ -818,11 +876,14 @@ function initCollectionDetailPage() {
         }
       },
       error: function (xhr) {
-        alert(
+        // Hide loading indicator
+        hideLoader();
+        showGlobalAlert(
           "Error " +
             (mode === "edit" ? "updating" : "adding") +
             " item: " +
-            xhr.responseText
+            xhr.responseText,
+          "danger"
         );
       },
     });
@@ -853,7 +914,17 @@ function initCollectionDetailPage() {
         if ($(this).find("img").length > 0) {
           itemData[fieldName] = $(this).find("img").attr("src");
         } else {
-          itemData[fieldName] = $(this).text();
+          var cellText = $(this).text();
+          // Try to parse JSON if it looks like a stringified object
+          if (cellText.startsWith("{") && cellText.endsWith("}")) {
+            try {
+              itemData[fieldName] = JSON.parse(cellText);
+            } catch (e) {
+              itemData[fieldName] = cellText;
+            }
+          } else {
+            itemData[fieldName] = cellText;
+          }
         }
       }
     });
@@ -905,22 +976,19 @@ function initCollectionDetailPage() {
         "Are you sure you want to delete this item? This action cannot be undone."
       )
     ) {
+      // Show loading indicator
+      showLoader();
+
       // Send AJAX request to delete item
       $.ajax({
         url: "/api/collections/" + collectionId + "/items/" + itemId,
         method: "DELETE",
         success: function (response) {
-          // Show success message
-          var $alertContainer = $(
-            '<div class="alert alert-success alert-dismissible fade show text-dark" role="alert"></div>'
-          );
-          $alertContainer.text("Item deleted successfully!");
-          $alertContainer.append(
-            '<button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>'
-          );
+          // Hide loading indicator
+          hideLoader();
 
-          // Add the alert to the page
-          $(".container").first().prepend($alertContainer);
+          // Show success message
+          showGlobalAlert("Item deleted successfully!");
 
           // Remove the row from the table
           $row.remove();
@@ -940,7 +1008,9 @@ function initCollectionDetailPage() {
           }
         },
         error: function (xhr) {
-          alert("Error deleting item: " + xhr.responseText);
+          // Hide loading indicator
+          hideLoader();
+          showGlobalAlert("Error deleting item: " + xhr.responseText, "danger");
         },
       });
     }
@@ -1007,6 +1077,9 @@ function initMediaPage() {
         // Reset form
         $form[0].reset();
 
+        // Show success message
+        showGlobalAlert("Image uploaded successfully!");
+
         // Remove any existing "no images" message
         if ($("#mediaContainer .alert").length > 0) {
           $("#mediaContainer").empty();
@@ -1057,7 +1130,7 @@ function initMediaPage() {
         initMediaItemButtons();
       },
       error: function (xhr) {
-        alert("Error uploading image: " + xhr.responseText);
+        showGlobalAlert("Error uploading image: " + xhr.responseText, "danger");
       },
     });
   });
@@ -1122,6 +1195,9 @@ function initMediaPage() {
         // Hide modal
         $deleteModal.modal("hide");
 
+        // Show success message
+        showGlobalAlert("Image deleted successfully!");
+
         // Find and remove the media card with the matching ID
         $(".card").each(function () {
           var cardHtml = $(this).html();
@@ -1141,7 +1217,7 @@ function initMediaPage() {
         }
       },
       error: function (xhr) {
-        alert("Error deleting image: " + xhr.responseText);
+        showGlobalAlert("Error deleting image: " + xhr.responseText, "danger");
         $deleteModal.modal("hide");
       },
     });

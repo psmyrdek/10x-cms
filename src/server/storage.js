@@ -7,7 +7,7 @@ var DATA_DIR = path.join(process.cwd(), "src/server/data");
 // Ensure data directory exists
 function ensureDataDirExists() {
   if (!fs.existsSync(DATA_DIR)) {
-    fs.mkdirSync(DATA_DIR, { recursive: true });
+    fs.mkdirSync(DATA_DIR, {recursive: true});
   }
 }
 
@@ -26,7 +26,7 @@ function createCollection(name, schema) {
     schema: schema || {},
     items: [],
     createdAt: new Date().toISOString(),
-    updatedAt: new Date().toISOString()
+    updatedAt: new Date().toISOString(),
   };
 
   var collectionsPath = getCollectionPath("collections");
@@ -131,13 +131,16 @@ function deleteCollection(id) {
       try {
         var webhooks = JSON.parse(fs.readFileSync(webhooksPath, "utf8"));
         // Filter out webhooks for this collection
-        webhooks = webhooks.filter(function(webhook) {
+        webhooks = webhooks.filter(function (webhook) {
           return webhook.collectionId !== id;
         });
         // Save updated webhooks
         fs.writeFileSync(webhooksPath, JSON.stringify(webhooks, null, 2));
       } catch (err) {
-        console.error("Error handling webhooks during collection deletion:", err);
+        console.error(
+          "Error handling webhooks during collection deletion:",
+          err
+        );
       }
     }
 
@@ -170,7 +173,8 @@ function addItemToCollection(collectionId, item) {
   collection.items.push(item);
 
   // Update collection
-  return updateCollection(collectionId, { items: collection.items });
+  updateCollection(collectionId, {items: collection.items});
+  return item;
 }
 
 // Update an item in a collection
@@ -207,7 +211,7 @@ function updateItemInCollection(collectionId, itemId, updates) {
 
   // Update collection
   collection.items[itemIndex] = item;
-  updateCollection(collectionId, { items: collection.items });
+  updateCollection(collectionId, {items: collection.items});
 
   return item;
 }
@@ -238,7 +242,7 @@ function deleteItemFromCollection(collectionId, itemId) {
   collection.items.splice(itemIndex, 1);
 
   // Update collection
-  updateCollection(collectionId, { items: collection.items });
+  updateCollection(collectionId, {items: collection.items});
 
   return true;
 }
@@ -255,7 +259,7 @@ function getWebhooks(collectionId) {
 
   try {
     var webhooks = JSON.parse(fs.readFileSync(webhooksPath, "utf8"));
-    return webhooks.filter(function(webhook) {
+    return webhooks.filter(function (webhook) {
       return webhook.collectionId === collectionId;
     });
   } catch (err) {
@@ -284,7 +288,7 @@ function addWebhook(collectionId, url, events) {
     url: url,
     events: events,
     createdAt: new Date().toISOString(),
-    updatedAt: new Date().toISOString()
+    updatedAt: new Date().toISOString(),
   };
 
   webhooks.push(webhook);
@@ -295,14 +299,14 @@ function addWebhook(collectionId, url, events) {
 // Delete a webhook
 function deleteWebhook(webhookId) {
   var webhooksPath = getCollectionPath("webhooks");
-  
+
   if (!fs.existsSync(webhooksPath)) {
     return false;
   }
 
   try {
     var webhooks = JSON.parse(fs.readFileSync(webhooksPath, "utf8"));
-    var index = webhooks.findIndex(function(webhook) {
+    var index = webhooks.findIndex(function (webhook) {
       return webhook.id === webhookId;
     });
 
@@ -325,7 +329,7 @@ function initializeStorage() {
 
   // Only ensure data directory exists, but don't create default collections
   var collectionsPath = getCollectionPath("collections");
-  
+
   // Initialize with empty array if file doesn't exist
   if (!fs.existsSync(collectionsPath)) {
     fs.writeFileSync(collectionsPath, JSON.stringify([], null, 2));
@@ -344,5 +348,5 @@ module.exports = {
   getWebhooks: getWebhooks,
   addWebhook: addWebhook,
   deleteWebhook: deleteWebhook,
-  initializeStorage: initializeStorage
+  initializeStorage: initializeStorage,
 };

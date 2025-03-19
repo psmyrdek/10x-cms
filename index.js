@@ -10,13 +10,11 @@ var dotenv = require("dotenv");
 var fs = require("fs");
 var multer = require("multer");
 
-// Configure multer for file uploads
 var multerStorage = multer.diskStorage({
   destination: function (req, file, cb) {
     cb(null, "public/uploads/");
   },
   filename: function (req, file, cb) {
-    // Use timestamp + original extension to avoid filename conflicts
     var ext = path.extname(file.originalname);
     cb(null, Date.now() + ext);
   },
@@ -28,7 +26,6 @@ var upload = multer({
     fileSize: 5 * 1024 * 1024, // 5MB limit
   },
   fileFilter: function (req, file, cb) {
-    // Accept only image files
     if (!file.mimetype.startsWith("image/")) {
       return cb(new Error("Only image files are allowed"));
     }
@@ -36,7 +33,6 @@ var upload = multer({
   },
 });
 
-// Load environment variables
 if (fs.existsSync(".env.development")) {
   dotenv.config({path: ".env.development"});
 } else {
@@ -45,17 +41,14 @@ if (fs.existsSync(".env.development")) {
 
 var app = express();
 
-// Middleware
 app.use(express.static("public"));
 app.use("/vendor", express.static("public/vendor"));
 app.use("/images", express.static("public/images"));
 app.use(bodyParser.urlencoded({extended: true}));
 app.use(bodyParser.json());
 
-// API Routes
 app.use("/api", apiRoutes);
 
-// Simple cookie middleware
 app.use(function (req, res, next) {
   var cookies = {};
   var cookieHeader = req.headers.cookie;
@@ -69,7 +62,6 @@ app.use(function (req, res, next) {
 
   req.cookies = cookies;
 
-  // Add a function to set cookies
   res.setCookie = function (name, value, options) {
     options = options || {};
     var cookieStr = name + "=" + value;
@@ -86,7 +78,6 @@ app.use(function (req, res, next) {
   next();
 });
 
-// Authentication middleware
 function requireAuth(req, res, next) {
   if (!req.cookies.auth) {
     return res.redirect("/login");
@@ -94,7 +85,6 @@ function requireAuth(req, res, next) {
   next();
 }
 
-// Routes
 function renderPage(req, res) {
   var pageName = req.path === "/" ? "home" : req.path.substring(1);
   var content = templating.renderPage(pageName, req);
@@ -106,7 +96,6 @@ function renderPage(req, res) {
   res.send(content);
 }
 
-// Webhooks route
 app.get("/webhooks", requireAuth, function (req, res) {
   var webhooksListHtml = "";
   var collections = storageModule.getCollections();
@@ -127,7 +116,6 @@ app.get("/webhooks", requireAuth, function (req, res) {
         "</option>";
     }
 
-    // Get all webhooks for each collection
     var hasWebhooks = false;
     for (var i = 0; i < collections.length; i++) {
       var collection = collections[i];
@@ -182,7 +170,6 @@ app.get("/webhooks", requireAuth, function (req, res) {
   res.send(content);
 });
 
-// Webhooks API routes
 app.post("/api/webhooks", requireAuth, function (req, res) {
   var collectionId = req.body.collection;
   var url = req.body.url;
@@ -209,7 +196,6 @@ app.delete("/api/webhooks/:id", requireAuth, function (req, res) {
   }
 });
 
-// Collections routes
 app.get("/collections", requireAuth, function (req, res) {
   var collections = storageModule.getCollections();
   var collectionsHtml = "";
@@ -223,7 +209,6 @@ app.get("/collections", requireAuth, function (req, res) {
       collectionsHtml += '<div class="col-md-4 mb-4">';
       collectionsHtml += '<div class="card">';
       collectionsHtml += '<div class="card-body">';
-      // Add meta tag with collection ID
       collectionsHtml += "<!-- @collectionId:" + collection.id + " -->";
       collectionsHtml += '<h5 class="card-title">' + collection.name + "</h5>";
       collectionsHtml +=
@@ -268,7 +253,6 @@ app.get("/collections/:id", requireAuth, function (req, res) {
   var itemsHtml = "";
   var formFieldsHtml = "";
 
-  // Generate form fields based on schema
   for (var field in collection.schema) {
     var fieldType = collection.schema[field];
     var inputType = "text";
@@ -291,7 +275,6 @@ app.get("/collections/:id", requireAuth, function (req, res) {
         field +
         '" rows="3"></textarea>';
     } else if (fieldType === "media") {
-      // Media field type
       formFieldsHtml +=
         '<div class="input-group">' +
         '<input type="hidden" id="' +
@@ -323,7 +306,6 @@ app.get("/collections/:id", requireAuth, function (req, res) {
     formFieldsHtml += "</div>";
   }
 
-  // Generate items HTML
   if (collection.items.length === 0) {
     itemsHtml =
       '<div class="alert alert-info text-dark">No items in this collection yet. Add your first item to get started.</div>';
@@ -332,13 +314,11 @@ app.get("/collections/:id", requireAuth, function (req, res) {
       '<div class="table-responsive"><table class="table table-striped">';
     itemsHtml += "<thead><tr>";
 
-    // Table headers from schema
     for (var field in collection.schema) {
       itemsHtml += "<th>" + field + "</th>";
     }
     itemsHtml += "<th>Actions</th></tr></thead>";
 
-    // Table body from items
     itemsHtml += "<tbody>";
     for (var i = 0; i < collection.items.length; i++) {
       var item = collection.items[i];
@@ -347,7 +327,6 @@ app.get("/collections/:id", requireAuth, function (req, res) {
       for (var field in collection.schema) {
         var fieldType = collection.schema[field];
         if (fieldType === "media" && item[field]) {
-          // For media fields, display as image thumbnail
           itemsHtml +=
             '<td><img src="' +
             item[field] +
@@ -389,7 +368,6 @@ app.post("/api/collections", requireAuth, function (req, res) {
   var name = req.body.name;
   var schema = {};
 
-  // Process schema fields from form
   if (req.body.fieldName && req.body.fieldType) {
     for (var i = 0; i < req.body.fieldName.length; i++) {
       schema[req.body.fieldName[i]] = req.body.fieldType[i];
@@ -397,14 +375,12 @@ app.post("/api/collections", requireAuth, function (req, res) {
   }
 
   var collection = storageModule.createCollection(name, schema);
-  
-  // Notify webhooks about the collection creation
-  webhooksModule.onCollectionCreated(collection);
-  
+
   res.json({success: true, collection: collection});
 });
 
-app.post("/api/collections/:id/items", requireAuth, function (req, res) {
+app.post("/api/collections/:id/items", requireAuth, async function (req, res) {
+  console.log("Creating item in collection:", req.params.id);
   var collectionId = req.params.id;
   var collection = storageModule.getCollectionById(collectionId);
 
@@ -414,25 +390,28 @@ app.post("/api/collections/:id/items", requireAuth, function (req, res) {
 
   var item = {};
 
-  // Process item fields from form
   for (var field in collection.schema) {
     if (req.body[field] !== undefined) {
       item[field] = req.body[field];
     }
   }
 
-  var updatedCollection = storageModule.addItemToCollection(collectionId, item);
-  
-  // Notify webhooks about the item creation
-  webhooksModule.onItemCreated(collectionId, item);
-  
-  res.json({success: true, item: item});
+  var addedItem = storageModule.addItemToCollection(collectionId, item);
+
+  // Wait for webhook but handle errors silently
+  try {
+    await webhooksModule.onItemCreated(collectionId, addedItem);
+  } catch (error) {
+    console.error("Error calling webhook for item creation:", error);
+  }
+
+  res.json({success: true, item: addedItem});
 });
 
 app.put(
   "/api/collections/:collectionId/items/:itemId",
   requireAuth,
-  function (req, res) {
+  async function (req, res) {
     var collectionId = req.params.collectionId;
     var itemId = req.params.itemId;
     var collection = storageModule.getCollectionById(collectionId);
@@ -443,7 +422,6 @@ app.put(
 
     var updates = {};
 
-    // Process item fields from form
     for (var field in collection.schema) {
       if (req.body[field] !== undefined) {
         updates[field] = req.body[field];
@@ -459,9 +437,13 @@ app.put(
     if (!result) {
       return res.status(404).json({error: "Item not found"});
     }
-    
-    // Notify webhooks about the item update
-    webhooksModule.onItemUpdated(collectionId, result);
+
+    // Wait for webhook but handle errors silently
+    try {
+      await webhooksModule.onItemUpdated(collectionId, result);
+    } catch (error) {
+      console.error("Error calling webhook for item update:", error);
+    }
 
     res.json({success: true, item: result});
   }
@@ -470,16 +452,20 @@ app.put(
 app.delete(
   "/api/collections/:collectionId/items/:itemId",
   requireAuth,
-  function (req, res) {
+  async function (req, res) {
     var collectionId = req.params.collectionId;
     var itemId = req.params.itemId;
 
     var success = storageModule.deleteItemFromCollection(collectionId, itemId);
 
     if (success) {
-      // Notify webhooks about the item deletion
-      webhooksModule.onItemDeleted(collectionId, itemId);
-      
+      // Wait for webhook but handle errors silently
+      try {
+        await webhooksModule.onItemDeleted(collectionId, itemId);
+      } catch (error) {
+        console.error("Error calling webhook for item deletion:", error);
+      }
+
       res.json({success: true, message: "Item deleted successfully"});
     } else {
       res.status(404).json({error: "Collection or item not found"});
@@ -490,7 +476,6 @@ app.delete(
 app.delete("/api/collections/:id", requireAuth, function (req, res) {
   var collectionId = req.params.id;
 
-  // Check if collection ID is provided
   if (!collectionId) {
     return res.status(400).json({error: "Collection ID is required"});
   }
@@ -498,9 +483,6 @@ app.delete("/api/collections/:id", requireAuth, function (req, res) {
   var success = storageModule.deleteCollection(collectionId);
 
   if (success) {
-    // Notify webhooks about the collection deletion
-    webhooksModule.onCollectionDeleted(collectionId);
-    
     res.json({success: true, message: "Collection deleted successfully"});
   } else {
     res.status(404).json({error: "Collection not found"});
@@ -509,7 +491,6 @@ app.delete("/api/collections/:id", requireAuth, function (req, res) {
 
 // Login routes
 app.get("/login", function (req, res) {
-  // If already logged in, redirect to home
   if (req.cookies.auth) {
     return res.redirect("/home");
   }
@@ -520,12 +501,10 @@ app.post("/login", function (req, res) {
   var username = req.body.username;
   var password = req.body.password;
 
-  // Check credentials against environment variables
   if (
     username === process.env.ADMIN_USERNAME &&
     password === process.env.ADMIN_PASSWORD
   ) {
-    // Set auth cookie
     res.setCookie("auth", "authenticated", {
       maxAge: 3600, // 1 hour
       path: "/",
@@ -539,7 +518,6 @@ app.post("/login", function (req, res) {
 });
 
 app.get("/logout", function (req, res) {
-  // Clear auth cookie
   res.setCookie("auth", "", {
     maxAge: -1,
     path: "/",
