@@ -362,7 +362,7 @@ function initCollectionsPage() {
         // If no collections left, show the "no collections" message
         if ($("#collectionsContainer .col-md-4").length === 0) {
           $("#collectionsContainer").html(
-            '<div class="col-12"><div class="alert alert-info text-dark">No collections found. Create your first collection to get started.</div></div>'
+            '<div class="col-12"><p class="alert alert-info text-dark">No collections found. Create your first collection to get started.</p></div>'
           );
         }
       },
@@ -466,7 +466,7 @@ function initCollectionDetailPage() {
 
         if (!response.media || response.media.length === 0) {
           $mediaSelectorContainer.html(
-            '<div class="col-12"><div class="alert alert-info">No images found. Please upload images in the Media Library first.</div></div>'
+            '<div class="col-12"><p class="alert alert-info text-dark">No images found. Please upload images in the Media Library first.</p></div>'
           );
           return;
         }
@@ -850,7 +850,7 @@ function initCollectionDetailPage() {
                     // If no more items, show the "no items" message
                     if ($("tbody tr").length === 0) {
                       $(".table-responsive").replaceWith(
-                        '<div class="alert alert-info text-dark">No items in this collection yet. Add your first item to get started.</div>'
+                        '<p class="alert alert-info text-dark">No items in this collection yet. Add your first item to get started.</p>'
                       );
                     }
                   },
@@ -1003,7 +1003,7 @@ function initCollectionDetailPage() {
           // If no more items, show the "no items" message
           if ($("tbody tr").length === 0) {
             $(".table-responsive").replaceWith(
-              '<div class="alert alert-info text-dark">No items in this collection yet. Add your first item to get started.</div>'
+              '<p class="alert alert-info text-dark">No items in this collection yet. Add your first item to get started.</p>'
             );
           }
         },
@@ -1212,7 +1212,7 @@ function initMediaPage() {
         // If no more media items, show "no images" message
         if ($("#mediaContainer .col-md-3").length === 0) {
           $("#mediaContainer").html(
-            '<div class="col-12"><div class="alert alert-info">No images found. Upload your first image to get started.</div></div>'
+            '<div class="col-12"><p class="alert text-dark">No images found. Upload your first image to get started.</p></div>'
           );
         }
       },

@@ -154,7 +154,8 @@ app.get("/webhooks", requireAuth, function (req, res) {
     }
 
     if (!hasWebhooks) {
-      webhooksListHtml = "<p>No webhooks configured yet.</p>";
+      webhooksListHtml =
+        "<p class='alert alert-info text-dark'>No webhooks configured yet.</p>";
     }
   }
 
@@ -202,7 +203,7 @@ app.get("/collections", requireAuth, function (req, res) {
 
   if (collections.length === 0) {
     collectionsHtml =
-      '<div class="col-12"><div class="alert alert-info text-dark">No collections found. Create your first collection to get started.</div></div>';
+      '<div class="col-12"><p class="alert alert-info text-dark">No collections found. Create your first collection to get started.</p></div>';
   } else {
     for (var i = 0; i < collections.length; i++) {
       var collection = collections[i];
@@ -308,7 +309,7 @@ app.get("/collections/:id", requireAuth, function (req, res) {
 
   if (collection.items.length === 0) {
     itemsHtml =
-      '<div class="alert alert-info text-dark">No items in this collection yet. Add your first item to get started.</div>';
+      '<p class="alert alert-info text-dark">No items in this collection yet. Add your first item to get started.</p>';
   } else {
     itemsHtml =
       '<div class="table-responsive"><table class="table table-striped">';
@@ -537,7 +538,7 @@ app.get("/media", requireAuth, function (req, res) {
 
   if (mediaItems.length === 0) {
     mediaHtml =
-      '<div class="col-12"><div class="alert alert-info">No images found. Upload your first image to get started.</div></div>';
+      '<div class="col-12"><p class="alert alert-info text-dark">No images found. Upload your first image to get started.</p></div>';
   } else {
     for (var i = 0; i < mediaItems.length; i++) {
       var item = mediaItems[i];
