@@ -670,11 +670,9 @@ function initCollectionDetailPage() {
 
             // If there's a "no items" message, remove it
             if (
-              $(".alert-info").length > 0 &&
-              $(".alert-info").text().includes("No items")
+              $("#collectionItems .alert-info").length > 0 &&
+              $("#collectionItems .alert-info").text().includes("No items")
             ) {
-              $(".alert-info").remove();
-
               // Create table structure if it doesn't exist
               var tableHtml =
                 '<div class="table-responsive"><table class="table table-striped">';
@@ -693,7 +691,7 @@ function initCollectionDetailPage() {
 
               tableHtml +=
                 "<th>Actions</th></tr></thead><tbody></tbody></table></div>";
-              $("#itemsContainer").html(tableHtml);
+              $("#collectionItems").html(tableHtml);
             }
 
             // Create new row for the item

@@ -4,43 +4,11 @@
 
 Nowoczesny System Zarządzania Treścią zbudowany z myślą o wydajności i skalowalności (i refaktoryzacji).
 
-## Wymagania wstępne
-
-- Node.js i npm
-- Bower (dla zależności frontendowych)
-
-## Rozpoczęcie pracy
-
-1. Zainstaluj globalne zależności:
-
-```bash
-npm install -g bower
-```
-
-2. Zainstaluj zależności projektu:
-
-```bash
-npm install
-bower install
-```
-
-Zależności frontendowe (jQuery i Bootstrap) zostaną zainstalowane w katalogu `public/vendor`.
-
-## Stack techniczny
-
-- Node.js - środowisko wykonawcze
-- Bower - zarządzanie zależnościami frontendowymi
-- jQuery & jQuery UI - obsługa interakcji po stronie klienta
-- Bootstrap - style komponentów
-- Express - framework backendowy
-- Multer - obsługa przesyłanych plików
-- Mocha & Chai - narzędzia do testowania
-
 ## Funkcjonalności
 
 ### tl;dr
 
-1. Utworzenie kolekcji (definicja typu elementów - np. Artykuł)
+1. Utworzenie kolekcji (definicja typu elementów - np. Artykuł z polami: tytuł, treść, data publikacji)
 2. Dodanie elementów do kolekcji (tworzenie elementów - np. Nowy artykuł)
 3. Zarządzanie elementami (przeglądanie,edycja, usuwanie)
 4. Rejestracja webhooków (reagowanie na zmiany w kolekcji)
@@ -105,6 +73,38 @@ Struktura danych wysyłanych przez webhook:
   "timestamp": "2025-03-18T10:59:57+01:00"
 }
 ```
+
+## Wymagania wstępne
+
+- Node.js i npm
+- Bower (dla zależności frontendowych)
+
+## Rozpoczęcie pracy
+
+1. Zainstaluj globalne zależności:
+
+```bash
+npm install -g bower
+```
+
+2. Zainstaluj zależności projektu:
+
+```bash
+npm install
+bower install
+```
+
+Zależności frontendowe zostaną zainstalowane w katalogu `public/vendor`.
+
+## Stack techniczny
+
+- Node.js - środowisko wykonawcze
+- Bower - zarządzanie zależnościami frontendowymi
+- jQuery & jQuery UI - obsługa interakcji po stronie klienta
+- Bootstrap - style komponentów
+- Express - framework backendowy
+- Multer - obsługa przesyłanych plików
+- Mocha & Chai - narzędzia do testowania
 
 ## Uruchamianie aplikacji
 
