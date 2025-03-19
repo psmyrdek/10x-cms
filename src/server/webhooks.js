@@ -1,8 +1,8 @@
 var storage = require("./storage");
 var httpClient = require("@10xdevspl/http-client");
 
-function getWebhooksForEvent(collectionId, eventType) {
-  var webhooks = storage.getWebhooks(collectionId);
+async function getWebhooksForEvent(collectionId, eventType) {
+  var webhooks = await storage.getWebhooks(collectionId);
 
   return webhooks.filter(function (webhook) {
     return webhook.events.indexOf(eventType) !== -1;
@@ -18,13 +18,13 @@ async function callWebhook(webhook, data) {
 }
 
 async function notifyWebhooks(collectionId, eventType, data) {
-  var webhooks = getWebhooksForEvent(collectionId, eventType);
+  var webhooks = await getWebhooksForEvent(collectionId, eventType);
 
   if (!webhooks || webhooks.length === 0) {
     return;
   }
 
-  var collection = storage.getCollectionById(collectionId);
+  var collection = await storage.getCollectionById(collectionId);
   if (!collection) {
     console.error(
       "Collection not found for webhook notification: " + collectionId

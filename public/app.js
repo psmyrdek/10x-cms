@@ -58,12 +58,15 @@ $(document).ready(function () {
   $("#webhookForm").on("submit", function (e) {
     e.preventDefault();
 
+    var events = [];
+    if ($("#event_create").is(":checked")) events.push("create");
+    if ($("#event_update").is(":checked")) events.push("update");
+    if ($("#event_delete").is(":checked")) events.push("delete");
+
     var data = {
       collection: $("#collection").val(),
       url: $("#url").val(),
-      event_create: $("#event_create").is(":checked"),
-      event_update: $("#event_update").is(":checked"),
-      event_delete: $("#event_delete").is(":checked"),
+      events: events,
     };
 
     // Validate form
@@ -77,7 +80,7 @@ $(document).ready(function () {
       return;
     }
 
-    if (!data.event_create && !data.event_update && !data.event_delete) {
+    if (events.length === 0) {
       showGlobalAlert("Please select at least one event", "danger");
       return;
     }

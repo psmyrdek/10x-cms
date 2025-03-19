@@ -178,14 +178,20 @@ app.post("/api/webhooks", requireAuth, async function (req, res) {
   try {
     var collectionId = req.body.collection;
     var url = req.body.url;
-    var events = [];
-
-    if (req.body.event_create) events.push("create");
-    if (req.body.event_update) events.push("update");
-    if (req.body.event_delete) events.push("delete");
+    var events = req.body.events || [];
 
     if (!collectionId || !url || events.length === 0) {
       return res.status(400).json({error: "Missing required fields"});
+    }
+
+    // Validate that events only contain allowed values
+    var allowedEvents = ["create", "update", "delete"];
+    var validEvents = events.every(function (event) {
+      return allowedEvents.includes(event);
+    });
+
+    if (!validEvents) {
+      return res.status(400).json({error: "Invalid event types provided"});
     }
 
     var webhook = await storageModule.addWebhook(collectionId, url, events);

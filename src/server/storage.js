@@ -83,7 +83,19 @@ async function deleteItemFromCollection(collectionId, itemId) {
 }
 
 async function getWebhooks(collectionId) {
-  return await db("webhooks").where({collection_id: collectionId}).select("*");
+  const webhooks = await db("webhooks")
+    .where({collection_id: collectionId})
+    .select("*");
+  return webhooks.map(function (webhook) {
+    if (typeof webhook.events === "string") {
+      try {
+        webhook.events = JSON.parse(webhook.events);
+      } catch (e) {
+        webhook.events = [];
+      }
+    }
+    return webhook;
+  });
 }
 
 async function addWebhook(collectionId, url, events) {
@@ -91,13 +103,16 @@ async function addWebhook(collectionId, url, events) {
     id: Date.now().toString(),
     collection_id: collectionId,
     url: url,
-    events: events,
+    events: JSON.stringify(events),
     created_at: new Date().toISOString(),
     updated_at: new Date().toISOString(),
   };
 
   await db("webhooks").insert(webhook);
-  return webhook;
+  return {
+    ...webhook,
+    events: events, // Return the original array for the response
+  };
 }
 
 async function deleteWebhook(webhookId) {
