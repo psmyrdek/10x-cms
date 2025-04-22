@@ -1,8 +1,6 @@
-name: CI
+name: Pull Request
 
 on:
-  push:
-    branches: [master]
   pull_request:
     branches: [master]
   workflow_dispatch:
@@ -31,3 +29,7 @@ jobs:
 
       - name: Run tests
         run: npm test
+
+      - uses: przeprogramowani/ai-action@master
+        with:
+          GOOGLE_API_KEY: ${{ secrets.GOOGLE_API_KEY }}
