@@ -10,21 +10,48 @@ var dotenv = require("dotenv");
 var fs = require("fs");
 var multer = require("multer");
 
+/**
+ * Multer disk storage configuration for file uploads.
+ * Specifies the destination directory and filename generation logic.
+ * @type {multer.StorageEngine}
+ */
 var multerStorage = multer.diskStorage({
+  /**
+   * Determines the destination folder for uploaded files.
+   * @param {express.Request} req - The Express request object.
+   * @param {Express.Multer.File} file - The file being uploaded.
+   * @param {function(Error | null, string)} cb - The callback function.
+   */
   destination: function (req, file, cb) {
     cb(null, "public/uploads/");
   },
+  /**
+   * Determines the filename for uploaded files.
+   * @param {express.Request} req - The Express request object.
+   * @param {Express.Multer.File} file - The file being uploaded.
+   * @param {function(Error | null, string)} cb - The callback function.
+   */
   filename: function (req, file, cb) {
     var ext = path.extname(file.originalname);
     cb(null, Date.now() + ext);
   },
 });
 
+/**
+ * Multer instance configured for image uploads with specific limits and file filtering.
+ * @type {multer.Multer}
+ */
 var upload = multer({
   storage: multerStorage,
   limits: {
     fileSize: 5 * 1024 * 1024, // 5MB limit
   },
+  /**
+   * Filters files based on their MIME type. Only images are allowed.
+   * @param {express.Request} req - The Express request object.
+   * @param {Express.Multer.File} file - The file being uploaded.
+   * @param {function(Error | null, boolean)} cb - The callback function.
+   */
   fileFilter: function (req, file, cb) {
     if (!file.mimetype.startsWith("image/")) {
       return cb(new Error("Only image files are allowed"));
@@ -33,22 +60,42 @@ var upload = multer({
   },
 });
 
+// Load environment variables from .env file. Prefer .env.development if it exists.
 if (fs.existsSync(".env.development")) {
   dotenv.config({path: ".env.development"});
 } else {
   dotenv.config();
 }
 
+/**
+ * The Express application instance.
+ * @type {express.Application}
+ */
 var app = express();
 
+// Serve static files from the 'public' directory
 app.use(express.static("public"));
+// Serve vendor files separately (example)
 app.use("/vendor", express.static("public/vendor"));
+// Serve uploaded images separately
 app.use("/images", express.static("public/images"));
+// Parse URL-encoded bodies (as sent by HTML forms)
 app.use(bodyParser.urlencoded({extended: true}));
+// Parse JSON bodies (as sent by API clients)
 app.use(bodyParser.json());
 
+// Mount API routes
 app.use("/api", apiRoutes);
 
+/**
+ * Custom middleware to parse cookies and add a setCookie method to the response.
+ * Adds a `cookies` object to `req` and a `setCookie` method to `res`.
+ * @param {express.Request} req - The Express request object.
+ * @property {Object<string, string>} req.cookies - An object containing parsed cookies.
+ * @param {express.Response} res - The Express response object.
+ * @property {function(string, string, { maxAge?: number, path?: string, httpOnly?: boolean, secure?: boolean }): express.Response} res.setCookie - Method to set a cookie on the response.
+ * @param {express.NextFunction} next - The next middleware function.
+ */
 app.use(function (req, res, next) {
   var cookies = {};
   var cookieHeader = req.headers.cookie;
@@ -62,6 +109,17 @@ app.use(function (req, res, next) {
 
   req.cookies = cookies;
 
+  /**
+   * Sets a cookie on the response object.
+   * @param {string} name - The name of the cookie.
+   * @param {string} value - The value of the cookie.
+   * @param {object} [options={}] - Cookie options.
+   * @param {number} [options.maxAge] - Cookie expiry in seconds.
+   * @param {string} [options.path] - Cookie path.
+   * @param {boolean} [options.httpOnly] - HTTP-only flag.
+   * @param {boolean} [options.secure] - Secure flag.
+   * @returns {express.Response} The response object for chaining.
+   */
   res.setCookie = function (name, value, options) {
     options = options || {};
     var cookieStr = name + "=" + value;
@@ -78,6 +136,13 @@ app.use(function (req, res, next) {
   next();
 });
 
+/**
+ * Middleware to require authentication. Redirects to login if 'auth' cookie is not present.
+ * @param {express.Request} req - The Express request object.
+ * @param {express.Response} res - The Express response object.
+ * @param {express.NextFunction} next - The next middleware function.
+ * @returns {void}
+ */
 function requireAuth(req, res, next) {
   if (!req.cookies.auth) {
     return res.redirect("/login");
@@ -85,6 +150,13 @@ function requireAuth(req, res, next) {
   next();
 }
 
+/**
+ * Renders a page template based on the request path.
+ * Determines the template name from the URL and renders it using the templating module.
+ * @param {express.Request} req - The Express request object.
+ * @param {express.Response} res - The Express response object.
+ * @returns {void}
+ */
 function renderPage(req, res) {
   var pageName = req.path === "/" ? "home" : req.path.substring(1);
   var content = templating.renderPage(pageName, req);
@@ -96,6 +168,13 @@ function renderPage(req, res) {
   res.send(content);
 }
 
+/**
+ * GET /webhooks - Renders the webhooks management page.
+ * Requires authentication. Fetches and displays existing webhooks grouped by collection.
+ * @param {express.Request} req - The Express request object.
+ * @param {express.Response} res - The Express response object.
+ * @returns {Promise<void>}
+ */
 app.get("/webhooks", requireAuth, async function (req, res) {
   try {
     var webhooksListHtml = "";
@@ -174,6 +253,13 @@ app.get("/webhooks", requireAuth, async function (req, res) {
   }
 });
 
+/**
+ * POST /api/webhooks - Creates a new webhook for a collection.
+ * Requires authentication. Expects collection ID, URL, and event types in the request body.
+ * @param {express.Request} req - The Express request object.
+ * @param {express.Response} res - The Express response object.
+ * @returns {Promise<void>}
+ */
 app.post("/api/webhooks", requireAuth, async function (req, res) {
   try {
     var collectionId = req.body.collection;
@@ -202,6 +288,13 @@ app.post("/api/webhooks", requireAuth, async function (req, res) {
   }
 });
 
+/**
+ * DELETE /api/webhooks/:id - Deletes a specific webhook.
+ * Requires authentication. Expects the webhook ID in the URL parameters.
+ * @param {express.Request} req - The Express request object.
+ * @param {express.Response} res - The Express response object.
+ * @returns {Promise<void>}
+ */
 app.delete("/api/webhooks/:id", requireAuth, async function (req, res) {
   try {
     var success = await storageModule.deleteWebhook(req.params.id);
@@ -216,6 +309,13 @@ app.delete("/api/webhooks/:id", requireAuth, async function (req, res) {
   }
 });
 
+/**
+ * GET /collections - Renders the collections management page.
+ * Requires authentication. Fetches and displays all collections with item counts.
+ * @param {express.Request} req - The Express request object.
+ * @param {express.Response} res - The Express response object.
+ * @returns {Promise<void>}
+ */
 app.get("/collections", requireAuth, async function (req, res) {
   try {
     var collections = await storageModule.getCollections();
@@ -272,6 +372,13 @@ app.get("/collections", requireAuth, async function (req, res) {
   }
 });
 
+/**
+ * GET /collections/:id - Renders the details page for a specific collection.
+ * Requires authentication. Fetches and displays the collection's items and schema-based form fields.
+ * @param {express.Request} req - The Express request object.
+ * @param {express.Response} res - The Express response object.
+ * @returns {Promise<void>}
+ */
 app.get("/collections/:id", requireAuth, async function (req, res) {
   try {
     var collectionId = req.params.id;
@@ -432,6 +539,13 @@ app.get("/collections/:id", requireAuth, async function (req, res) {
 });
 
 // API routes for collections
+/**
+ * POST /api/collections - Creates a new collection.
+ * Requires authentication. Expects collection name and schema fields/types in the request body.
+ * @param {express.Request} req - The Express request object.
+ * @param {express.Response} res - The Express response object.
+ * @returns {Promise<void>}
+ */
 app.post("/api/collections", requireAuth, async function (req, res) {
   try {
     var name = req.body.name;
@@ -451,6 +565,14 @@ app.post("/api/collections", requireAuth, async function (req, res) {
   }
 });
 
+/**
+ * POST /api/collections/:id/items - Adds a new item to a collection.
+ * Requires authentication. Expects collection ID in URL and item data in request body.
+ * Triggers item created webhooks.
+ * @param {express.Request} req - The Express request object.
+ * @param {express.Response} res - The Express response object.
+ * @returns {Promise<void>}
+ */
 app.post("/api/collections/:id/items", requireAuth, async function (req, res) {
   try {
     const collectionId = req.params.id;
@@ -478,6 +600,14 @@ app.post("/api/collections/:id/items", requireAuth, async function (req, res) {
   }
 });
 
+/**
+ * PUT /api/collections/:collectionId/items/:itemId - Updates an existing item in a collection.
+ * Requires authentication. Expects collection ID and item ID in URL and updated item data in request body.
+ * Triggers item updated webhooks.
+ * @param {express.Request} req - The Express request object.
+ * @param {express.Response} res - The Express response object.
+ * @returns {Promise<void>}
+ */
 app.put(
   "/api/collections/:collectionId/items/:itemId",
   requireAuth,
@@ -514,6 +644,14 @@ app.put(
   }
 );
 
+/**
+ * DELETE /api/collections/:collectionId/items/:itemId - Deletes an item from a collection.
+ * Requires authentication. Expects collection ID and item ID in URL.
+ * Triggers item deleted webhooks.
+ * @param {express.Request} req - The Express request object.
+ * @param {express.Response} res - The Express response object.
+ * @returns {Promise<void>}
+ */
 app.delete(
   "/api/collections/:collectionId/items/:itemId",
   requireAuth,
@@ -546,6 +684,13 @@ app.delete(
   }
 );
 
+/**
+ * DELETE /api/collections/:id - Deletes a collection.
+ * Requires authentication. Expects collection ID in URL.
+ * @param {express.Request} req - The Express request object.
+ * @param {express.Response} res - The Express response object.
+ * @returns {Promise<void>}
+ */
 app.delete("/api/collections/:id", requireAuth, async function (req, res) {
   try {
     var collectionId = req.params.id;
@@ -568,6 +713,13 @@ app.delete("/api/collections/:id", requireAuth, async function (req, res) {
 });
 
 // Login routes
+/**
+ * GET /login - Renders the login page.
+ * Redirects to /home if already authenticated.
+ * @param {express.Request} req - The Express request object.
+ * @param {express.Response} res - The Express response object.
+ * @returns {void}
+ */
 app.get("/login", function (req, res) {
   if (req.cookies.auth) {
     return res.redirect("/home");
@@ -575,6 +727,13 @@ app.get("/login", function (req, res) {
   renderPage(req, res);
 });
 
+/**
+ * POST /login - Handles login submission.
+ * Checks credentials against environment variables. Sets auth cookie on success.
+ * @param {express.Request} req - The Express request object.
+ * @param {express.Response} res - The Express response object.
+ * @returns {void}
+ */
 app.post("/login", function (req, res) {
   var username = req.body.username;
   var password = req.body.password;
@@ -595,6 +754,13 @@ app.post("/login", function (req, res) {
   return res.status(401).json({error: "Invalid credentials"});
 });
 
+/**
+ * GET /logout - Logs out the user.
+ * Clears the authentication cookie and redirects to the login page.
+ * @param {express.Request} req - The Express request object.
+ * @param {express.Response} res - The Express response object.
+ * @returns {void}
+ */
 app.get("/logout", function (req, res) {
   res.setCookie("auth", "", {
     maxAge: -1,
@@ -609,6 +775,13 @@ app.get("/", requireAuth, renderPage);
 app.get("/home", requireAuth, renderPage);
 
 // Media Library routes
+/**
+ * GET /media - Renders the media library page.
+ * Requires authentication. Fetches and displays all uploaded media items.
+ * @param {express.Request} req - The Express request object.
+ * @param {express.Response} res - The Express response object.
+ * @returns {void}
+ */
 app.get("/media", requireAuth, function (req, res) {
   var mediaItems = mediaModule.getAllMedia();
   var mediaHtml = "";
@@ -670,6 +843,14 @@ app.get("/media", requireAuth, function (req, res) {
 });
 
 // API routes for media
+/**
+ * POST /api/media - Handles media file upload.
+ * Requires authentication and uses the 'upload' multer middleware.
+ * Expects a single file named 'image' and an optional 'description' in the request body.
+ * @param {express.Request} req - The Express request object, enhanced by multer with a `file` property.
+ * @param {express.Response} res - The Express response object.
+ * @returns {void}
+ */
 app.post(
   "/api/media",
   requireAuth,
@@ -691,6 +872,13 @@ app.post(
   }
 );
 
+/**
+ * GET /api/media - Retrieves a list of all media items.
+ * Requires authentication.
+ * @param {express.Request} req - The Express request object.
+ * @param {express.Response} res - The Express response object.
+ * @returns {void}
+ */
 app.get("/api/media", requireAuth, function (req, res) {
   try {
     var mediaItems = mediaModule.getAllMedia();
@@ -701,6 +889,13 @@ app.get("/api/media", requireAuth, function (req, res) {
   }
 });
 
+/**
+ * DELETE /api/media/:id - Deletes a specific media item.
+ * Requires authentication. Expects the media item ID in the URL parameters.
+ * @param {express.Request} req - The Express request object.
+ * @param {express.Response} res - The Express response object.
+ * @returns {void}
+ */
 app.delete("/api/media/:id", requireAuth, function (req, res) {
   var mediaId = req.params.id;
 
@@ -717,7 +912,10 @@ app.delete("/api/media/:id", requireAuth, function (req, res) {
   }
 });
 
-// Initialize storage
+/**
+ * Initializes the database and starts the Express server.
+ * This is an immediately invoked async function (IIFE).
+ */
 (async () => {
   try {
     await storageModule.initializeStorage();

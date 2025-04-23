@@ -1,4 +1,10 @@
 // Legacy-style jQuery initialization
+/**
+ * Initializes the application once the DOM is fully loaded.
+ * Sets up Bootstrap tooltips, highlights the active navigation link,
+ * creates a global alert container, defines the global alert function,
+ * and initializes page-specific functionality based on the current URL.
+ */
 $(document).ready(function () {
   // Initialize Bootstrap tooltips
   $('[data-bs-toggle="tooltip"]').tooltip();
@@ -19,7 +25,12 @@ $(document).ready(function () {
     );
   }
 
-  // Function to show global alerts
+  /**
+   * Displays a global alert message at the top of the page.
+   * The alert automatically dismisses after 5 seconds.
+   * @param {string} message - The message to display in the alert.
+   * @param {string} [type='success'] - The type of alert (e.g., 'success', 'danger', 'warning', 'info').
+   */
   window.showGlobalAlert = function (message, type) {
     var $alertContainer = $(
       '<div class="alert alert-' +
@@ -54,7 +65,12 @@ $(document).ready(function () {
     initMediaPage();
   }
 
-  // Webhook form submission
+  /**
+   * Handles the submission of the webhook creation form.
+   * Prevents default form submission, collects data, validates inputs,
+   * and sends an AJAX POST request to create the webhook.
+   * Reloads the page on success or shows an error message on failure.
+   */
   $("#webhookForm").on("submit", function (e) {
     e.preventDefault();
 
@@ -101,7 +117,12 @@ $(document).ready(function () {
     });
   });
 
-  // Delete webhook
+  /**
+   * Handles click events for deleting a webhook.
+   * Prompts the user for confirmation and sends an AJAX DELETE request
+   * to the server to remove the webhook. Reloads the page on success
+   * or shows an error message on failure.
+   */
   $(document).on("click", ".delete-webhook", function () {
     var webhookId = $(this).data("id");
 
@@ -120,6 +141,12 @@ $(document).ready(function () {
   });
 });
 
+/**
+ * Initializes functionality specific to the Collections page.
+ * Sets up modal handling for creating and deleting collections,
+ * initializes sortable schema fields, handles adding and removing schema fields,
+ * and manages AJAX requests for creating and deleting collections.
+ */
 function initCollectionsPage() {
   // Create collection modal
   var $modal = $("#createCollectionModal");
@@ -394,6 +421,12 @@ function initCollectionsPage() {
   });
 }
 
+/**
+ * Initializes functionality specific to the Collection Detail page.
+ * Gets the collection ID, sets up modal handling for adding/editing items,
+ * initializes the media selector modal and related functionality,
+ * and manages AJAX requests for adding, editing, and deleting collection items.
+ */
 function initCollectionDetailPage() {
   // Get collection ID from meta tag
   var collectionIdMeta = $('meta[name="collection-id"]').attr("content");
@@ -415,11 +448,16 @@ function initCollectionDetailPage() {
   var $mediaSelectorContainer = $("#mediaSelectorContainer");
   var currentMediaField = null;
 
-  // Show/hide loading indicator functions
+  /**
+   * Displays the full-page loading indicator.
+   */
   function showLoader() {
     $("#fullPageLoader").removeClass("d-none");
   }
 
+  /**
+   * Hides the full-page loading indicator.
+   */
   function hideLoader() {
     $("#fullPageLoader").addClass("d-none");
   }
@@ -471,7 +509,9 @@ function initCollectionDetailPage() {
     });
   });
 
-  // Load media items for selector
+  /**
+   * Loads media items from the API and displays them in the media selector modal.
+   */
   function loadMediaItems() {
     $mediaSelectorContainer.html(
       '<div class="col-12 text-center"><div class="spinner-border" role="status"><span class="visually-hidden">Loading...</span></div></div>'
@@ -540,7 +580,10 @@ function initCollectionDetailPage() {
     });
   }
 
-  // Select media item
+  /**
+   * Selects a media item and updates the corresponding form field and preview.
+   * @param {string} mediaPath - The path to the selected media file.
+   */
   function selectMedia(mediaPath) {
     if (!currentMediaField) {
       return;
@@ -564,7 +607,11 @@ function initCollectionDetailPage() {
     $mediaSelectorModal.modal("hide");
   }
 
-  // Save item button click handler
+  /**
+   * Handles the click event for the Save Item button in the item modal.
+   * Validates the form, collects data, and sends an AJAX request to add
+   * or update an item in the collection. Updates the UI based on the response.
+   */
   $("#saveItemBtn").on("click", function () {
     // Validate form
     if (!$("#itemForm")[0].checkValidity()) {
@@ -689,19 +736,28 @@ function initCollectionDetailPage() {
               tableHtml += "<thead><tr>";
 
               // Add headers based on schema
-              for (var field in item.data) {
-                if (
-                  field !== "id" &&
-                  field !== "createdAt" &&
-                  field !== "updatedAt"
-                ) {
-                  tableHtml += "<th>" + field + "</th>";
-                }
+              // Assuming response.item.data keys match the table headers
+              // This part might need refinement if schema isn't directly available
+              // or if the header logic is different. For now, infer from item data keys.
+              // A more robust solution would be to get the schema via AJAX or have it in the HTML.
+              var headerRow = $("table thead tr");
+              if (headerRow.length === 0) {
+                 // If no headers exist (because "no items" message was there), create headers
+                 // based on the keys in the first item's data.
+                 // WARNING: This assumes all items have the same keys in the same order.
+                 // A better approach would be to fetch the collection schema.
+                 tableHtml = '<div class="table-responsive"><table class="table table-striped">';
+                 tableHtml += "<thead><tr>";
+                 for (var field in item.data) {
+                   if (field !== "id" && field !== "createdAt" && field !== "updatedAt") {
+                     tableHtml += "<th>" + field.charAt(0).toUpperCase() + field.slice(1) + "</th>"; // Simple capitalization
+                   }
+                 }
+                 tableHtml += "<th>Actions</th></tr></thead><tbody></tbody></table></div>";
+                 $("#collectionItems").html(tableHtml);
               }
 
-              tableHtml +=
-                "<th>Actions</th></tr></thead><tbody></tbody></table></div>";
-              $("#collectionItems").html(tableHtml);
+
             }
 
             // Create new row for the item
@@ -746,133 +802,7 @@ function initCollectionDetailPage() {
             $tbody.append($newRow);
 
             // Initialize the buttons for the new row
-            $newRow.find(".edit-item-btn").on("click", function () {
-              var $row = $(this).closest("tr");
-              var itemId = $row.data("id");
-
-              // Get the collection schema
-              var schema = {};
-              $("table thead th").each(function (index) {
-                if (index < $("table thead th").length - 1) {
-                  // Skip the Actions column
-                  schema[$(this).text()] = "string"; // Default to string type
-                }
-              });
-
-              // Get the current item values
-              var itemData = {};
-              $row.find("td").each(function (index) {
-                if (index < $row.find("td").length - 1) {
-                  // Skip the Actions column
-                  var fieldName = $("table thead th").eq(index).text();
-
-                  // Check if this is a media field
-                  if ($(this).find("img").length > 0) {
-                    itemData[fieldName] = $(this).find("img").attr("src");
-                  } else {
-                    var cellText = $(this).text();
-                    // Try to parse JSON if it looks like a stringified object
-                    if (cellText.startsWith("{") && cellText.endsWith("}")) {
-                      try {
-                        itemData[fieldName] = JSON.parse(cellText);
-                      } catch (e) {
-                        itemData[fieldName] = cellText;
-                      }
-                    } else {
-                      itemData[fieldName] = cellText;
-                    }
-                  }
-                }
-              });
-
-              // Reset the form
-              $("#itemForm")[0].reset();
-
-              // Fill the form with current values
-              for (var field in itemData) {
-                var $field = $("#" + field);
-
-                if ($field.length > 0) {
-                  // Regular input field
-                  $field.val(itemData[field]);
-
-                  // If it's a media field, update the preview and display
-                  if (
-                    $field.hasClass("media-field-input") ||
-                    $("#" + field + "_display").length > 0
-                  ) {
-                    $("#" + field + "_display").val(itemData[field]);
-                    $("#" + field + "_preview").html(
-                      '<img src="' +
-                        itemData[field] +
-                        '" class="img-thumbnail" style="max-height: 100px;">'
-                    );
-                  }
-                }
-              }
-
-              // Change the modal title and button text
-              $("#itemModal .modal-title").text("Edit Item");
-              $("#saveItemBtn")
-                .text("Update Item")
-                .data("mode", "edit")
-                .data("item-id", itemId);
-
-              // Show the modal
-              $("#itemModal").modal("show");
-            });
-
-            $newRow.find(".delete-item-btn").on("click", function () {
-              var $row = $(this).closest("tr");
-              var itemId = $row.data("id");
-
-              if (
-                confirm(
-                  "Are you sure you want to delete this item? This action cannot be undone."
-                )
-              ) {
-                // Show loading indicator
-                showLoader();
-
-                // Send AJAX request to delete item
-                $.ajax({
-                  url: "/api/collections/" + collectionId + "/items/" + itemId,
-                  method: "DELETE",
-                  success: function (response) {
-                    // Hide loading indicator
-                    hideLoader();
-
-                    // Show success message
-                    showGlobalAlert("Item deleted successfully!");
-
-                    // Remove the row from the table
-                    $row.remove();
-
-                    // Update item count if displayed
-                    var $itemCount = $(".item-count");
-                    if ($itemCount.length > 0) {
-                      var currentCount = parseInt($itemCount.text(), 10);
-                      $itemCount.text(Math.max(0, currentCount - 1));
-                    }
-
-                    // If no more items, show the "no items" message
-                    if ($("tbody tr").length === 0) {
-                      $(".table-responsive").replaceWith(
-                        '<p class="alert alert-info text-dark">No items in this collection yet. Add your first item to get started.</p>'
-                      );
-                    }
-                  },
-                  error: function (xhr) {
-                    // Hide loading indicator
-                    hideLoader();
-                    showGlobalAlert(
-                      "Error deleting item: " + xhr.responseText,
-                      "danger"
-                    );
-                  },
-                });
-              }
-            });
+            initializeRowButtons($newRow);
 
             // Update item count if displayed
             var $itemCount = $(".item-count");
@@ -903,6 +833,7 @@ function initCollectionDetailPage() {
     var itemId = $row.data("id");
 
     // Get the collection schema
+    // This is a simplified assumption; ideally, schema should be fetched or stored.
     var schema = {};
     $("table thead th").each(function (index) {
       if (index < $("table thead th").length - 1) {
@@ -1024,14 +955,18 @@ function initCollectionDetailPage() {
     }
   });
 
-  // Add this function inside initCollectionDetailPage
+  /**
+   * Initializes click handlers for edit and delete buttons within a given table row.
+   * This function is used to re-initialize buttons after adding or updating a row dynamically.
+   * @param {jQuery} $row - The jQuery object representing the table row.
+   */
   function initializeRowButtons($row) {
     // Initialize edit button
     $row.find(".edit-item-btn").on("click", function () {
       var $row = $(this).closest("tr");
       var itemId = $row.data("id");
 
-      // Get the collection schema
+      // Get the collection schema (simplified)
       var schema = {};
       $("table thead th").each(function (index) {
         if (index < $("table thead th").length - 1) {
@@ -1050,7 +985,16 @@ function initCollectionDetailPage() {
             itemData[fieldName] = $(this).find("img").attr("src");
           } else {
             var cellText = $(this).text();
-            itemData[fieldName] = cellText;
+            // Try to parse JSON if it looks like a stringified object
+            if (cellText.startsWith("{") && cellText.endsWith("}")) {
+              try {
+                itemData[fieldName] = JSON.parse(cellText);
+              } catch (e) {
+                 itemData[fieldName] = cellText; // Keep as string if parsing fails
+              }
+            } else {
+              itemData[fieldName] = cellText;
+            }
           }
         }
       });
@@ -1134,6 +1078,11 @@ function initCollectionDetailPage() {
   }
 }
 
+/**
+ * Initializes functionality specific to the Media Library page.
+ * Sets up modal handling for uploading, deleting, and previewing images,
+ * and manages AJAX requests for uploading and deleting media items.
+ */
 function initMediaPage() {
   // Upload image modal
   var $modal = $("#uploadImageModal");
@@ -1252,13 +1201,17 @@ function initMediaPage() {
     });
   });
 
-  // Initialize buttons for all media items
+  // Initialize buttons for all media items on page load
   initMediaItemButtons();
 
+  /**
+   * Initializes click handlers for preview and delete buttons on media item cards.
+   * This function is called on page load and after adding a new media item.
+   */
   function initMediaItemButtons() {
     // Preview button click handler
     $(".preview-image-btn")
-      .off("click")
+      .off("click") // Remove previous handlers to avoid duplicates
       .on("click", function () {
         var $btn = $(this);
         var path = $btn.data("path");
@@ -1271,6 +1224,7 @@ function initMediaPage() {
         $previewDescription.text(description || "No description");
 
         // Set copy URL button data
+        // Construct full URL relative to the origin
         $copyUrlBtn.data("url", window.location.origin + path);
 
         // Show preview modal
@@ -1279,12 +1233,12 @@ function initMediaPage() {
 
     // Delete button click handler
     $(".delete-image-btn")
-      .off("click")
+      .off("click") // Remove previous handlers to avoid duplicates
       .on("click", function () {
         var $btn = $(this);
         var mediaId = $btn.data("id");
 
-        // Set media to delete
+        // Set media to delete in a hidden meta tag within the delete modal
         $("#image-id-to-delete").attr("content", mediaId);
 
         // Show delete confirmation modal
@@ -1292,7 +1246,12 @@ function initMediaPage() {
       });
   }
 
-  // Confirm delete button click handler
+  /**
+   * Handles the click event for the Confirm Delete Image button.
+   * Retrieves the media ID to delete and sends an AJAX DELETE request.
+   * Removes the media card from the DOM on success and updates the "no images" message if needed.
+   * Shows an error message on failure.
+   */
   $confirmDeleteBtn.on("click", function () {
     // Get media ID from meta tag
     var metaTag = $("#image-id-to-delete");
@@ -1340,17 +1299,41 @@ function initMediaPage() {
     });
   });
 
-  // Copy URL button click handler
+  /**
+   * Handles the click event for the Copy Image URL button in the preview modal.
+   * Copies the image URL to the clipboard and provides temporary visual feedback.
+   */
   $copyUrlBtn.on("click", function () {
     var url = $(this).data("url");
 
-    // Create temporary textarea to copy URL
+    // Create temporary textarea element to copy URL
     var tempTextarea = document.createElement("textarea");
     tempTextarea.value = url;
+    // Make the textarea invisible and out of flow
+    tempTextarea.style.position = 'fixed';
+    tempTextarea.style.top = '0';
+    tempTextarea.style.left = '0';
+    tempTextarea.style.width = '1px';
+    tempTextarea.style.height = '1px';
+    tempTextarea.style.padding = '0';
+    tempTextarea.style.border = 'none';
+    tempTextarea.style.outline = 'none';
+    tempTextarea.style.boxShadow = 'none';
+    tempTextarea.style.background = 'transparent';
+
     document.body.appendChild(tempTextarea);
     tempTextarea.select();
-    document.execCommand("copy");
-    document.body.removeChild(tempTextarea);
+
+    try {
+      var successful = document.execCommand("copy");
+      var msg = successful ? "successful" : "unsuccessful";
+      console.log("Copying text command was " + msg);
+    } catch (err) {
+      console.error("Unable to copy text", err);
+    } finally {
+       document.body.removeChild(tempTextarea);
+    }
+
 
     // Change button text temporarily
     var $btn = $(this);

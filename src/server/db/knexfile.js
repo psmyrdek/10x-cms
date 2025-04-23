@@ -14,6 +14,11 @@ module.exports = {
     },
     useNullAsDefault: true,
     pool: {
+      /**
+       * Enables foreign key constraints on the SQLite connection after creation.
+       * @param {object} conn The database connection object.
+       * @param {function(): void} cb The callback function to be executed after the command runs.
+       */
       afterCreate: (conn, cb) => {
         conn.run("PRAGMA foreign_keys = ON", cb);
       },
@@ -47,6 +52,11 @@ module.exports = {
     },
     useNullAsDefault: true,
     pool: {
+      /**
+       * Enables foreign key constraints on the SQLite connection after creation.
+       * @param {object} conn The database connection object.
+       * @param {function(): void} cb The callback function to be executed after the command runs.
+       */
       afterCreate: (conn, cb) => {
         conn.run("PRAGMA foreign_keys = ON", cb);
       },

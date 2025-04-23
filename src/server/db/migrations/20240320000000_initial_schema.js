@@ -1,3 +1,9 @@
+/**
+ * Apply database schema changes (create tables).
+ *
+ * @param {object} knex - The Knex.js instance.
+ * @returns {Promise<void>}
+ */
 exports.up = function (knex) {
   return knex.schema
     .createTable("collections", function (table) {
@@ -32,6 +38,12 @@ exports.up = function (knex) {
     });
 };
 
+/**
+ * Revert database schema changes (drop tables).
+ *
+ * @param {object} knex - The Knex.js instance.
+ * @returns {Promise<void>}
+ */
 exports.down = function (knex) {
   return knex.schema
     .dropTable("webhooks")

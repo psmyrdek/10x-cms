@@ -1,6 +1,12 @@
 var storage = require("./storage");
 var httpClient = require("@10xdevspl/http-client");
 
+/**
+ * Retrieves webhooks registered for a specific collection and event type.
+ * @param {string} collectionId - The ID of the collection.
+ * @param {string} eventType - The type of the event (e.g., 'create', 'update', 'delete').
+ * @returns {Promise<Array<{ url: string, events: string[] }>>} A promise that resolves to an array of webhook objects matching the criteria.
+ */
 async function getWebhooksForEvent(collectionId, eventType) {
   var webhooks = await storage.getWebhooks(collectionId);
 
@@ -9,6 +15,12 @@ async function getWebhooksForEvent(collectionId, eventType) {
   });
 }
 
+/**
+ * Calls a single webhook URL with the given data payload.
+ * @param {{ url: string }} webhook - The webhook object, must contain a 'url' property.
+ * @param {object} data - The data payload to send to the webhook.
+ * @returns {Promise<object>} A promise that resolves to the HTTP client response.
+ */
 async function callWebhook(webhook, data) {
   return await httpClient.post(webhook.url, data, {
     "Content-Type": "application/json",
@@ -17,6 +29,15 @@ async function callWebhook(webhook, data) {
   });
 }
 
+/**
+ * Notifies all relevant webhooks for a specific event on a collection.
+ * Fetches webhooks, constructs the payload, and calls each webhook URL,
+ * logging results and errors.
+ * @param {string} collectionId - The ID of the collection where the event occurred.
+ * @param {string} eventType - The type of the event (e.g., 'create', 'update', 'delete').
+ * @param {object} data - The data related to the event (e.g., item data or item ID).
+ * @returns {Promise<void>} A promise that resolves when all webhook calls have been attempted.
+ */
 async function notifyWebhooks(collectionId, eventType, data) {
   var webhooks = await getWebhooksForEvent(collectionId, eventType);
 
@@ -72,14 +93,32 @@ async function notifyWebhooks(collectionId, eventType, data) {
   );
 }
 
+/**
+ * Handles the 'item created' event by notifying relevant webhooks.
+ * @param {string} collectionId - The ID of the collection where the item was created.
+ * @param {object} item - The data of the newly created item.
+ * @returns {Promise<void>} A promise that resolves when webhook notifications are complete.
+ */
 async function onItemCreated(collectionId, item) {
   await notifyWebhooks(collectionId, "create", item);
 }
 
+/**
+ * Handles the 'item updated' event by notifying relevant webhooks.
+ * @param {string} collectionId - The ID of the collection where the item was updated.
+ * @param {object} item - The data of the updated item.
+ * @returns {Promise<void>} A promise that resolves when webhook notifications are complete.
+ */
 async function onItemUpdated(collectionId, item) {
   await notifyWebhooks(collectionId, "update", item);
 }
 
+/**
+ * Handles the 'item deleted' event by notifying relevant webhooks.
+ * @param {string} collectionId - The ID of the collection where the item was deleted.
+ * @param {string} itemId - The ID of the deleted item.
+ * @returns {Promise<void>} A promise that resolves when webhook notifications are complete.
+ */
 async function onItemDeleted(collectionId, itemId) {
   await notifyWebhooks(collectionId, "delete", {id: itemId});
 }
