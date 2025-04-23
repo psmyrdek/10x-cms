@@ -7,7 +7,9 @@ var MEDIA_DIR = path.join(process.cwd(), "src/server/data");
 var MEDIA_FILE = "media.json";
 var UPLOADS_DIR = path.join(process.cwd(), "public/uploads");
 
-// Ensure directories exist
+/**
+ * Ensure that the media and uploads directories exist.
+ */
 function ensureDirectoriesExist() {
   if (!fsSync.existsSync(MEDIA_DIR)) {
     fsSync.mkdirSync(MEDIA_DIR, {recursive: true});

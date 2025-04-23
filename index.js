@@ -313,6 +313,8 @@ app.get("/collections", requireAuth, async function (req, res) {
 
 /**
  * Route to display a specific collection.
+ * @param {object} req - The request object.
+ * @param {object} res - The response object.
  */
 app.get("/collections/:id", requireAuth, async function (req, res) {
   try {
@@ -625,6 +627,8 @@ app.delete("/api/collections/:id", requireAuth, async function (req, res) {
 
 /**
  * Route to display the login page.
+ * @param {object} req - The request object.
+ * @param {object} res - The response object.
  */
 app.get("/login", function (req, res) {
   if (req.cookies.auth) {
@@ -635,6 +639,8 @@ app.get("/login", function (req, res) {
 
 /**
  * Route to handle login requests.
+ * @param {object} req - The request object.
+ * @param {object} res - The response object.
  */
 app.post("/login", function (req, res) {
   var username = req.body.username;
@@ -658,6 +664,8 @@ app.post("/login", function (req, res) {
 
 /**
  * Route to handle logout requests.
+ * @param {object} req - The request object.
+ * @param {object} res - The response object.
  */
 app.get("/logout", function (req, res) {
   res.setCookie("auth", "", {

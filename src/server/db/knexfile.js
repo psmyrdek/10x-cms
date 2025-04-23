@@ -18,8 +18,9 @@ module.exports = {
     useNullAsDefault: true,
     pool: {
       /**
-       * @param {any} conn
-       * @param {any} cb
+       * Runs after a connection is made, enabling foreign keys.
+       * @param {any} conn - The database connection object.
+       * @param {any} cb - The callback function.
        */
       afterCreate: (conn, cb) => {
         conn.run("PRAGMA foreign_keys = ON", cb);
@@ -55,8 +56,9 @@ module.exports = {
     useNullAsDefault: true,
     pool: {
       /**
-       * @param {any} conn
-       * @param {any} cb
+       * Runs after a connection is made, enabling foreign keys.
+       * @param {any} conn - The database connection object.
+       * @param {any} cb - The callback function.
        */
       afterCreate: (conn, cb) => {
         conn.run("PRAGMA foreign_keys = ON", cb);
