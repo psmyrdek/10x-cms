@@ -10,6 +10,9 @@ var dotenv = require("dotenv");
 var fs = require("fs");
 var multer = require("multer");
 
+/**
+ * Multer disk storage configuration.
+ */
 var multerStorage = multer.diskStorage({
   destination: function (req, file, cb) {
     cb(null, "public/uploads/");
@@ -20,6 +23,9 @@ var multerStorage = multer.diskStorage({
   },
 });
 
+/**
+ * Multer upload configuration.
+ */
 var upload = multer({
   storage: multerStorage,
   limits: {
@@ -49,6 +55,9 @@ app.use(bodyParser.json());
 
 app.use("/api", apiRoutes);
 
+/**
+ * Middleware to parse cookies and set a custom cookie setter on the response.
+ */
 app.use(function (req, res, next) {
   var cookies = {};
   var cookieHeader = req.headers.cookie;
@@ -62,6 +71,13 @@ app.use(function (req, res, next) {
 
   req.cookies = cookies;
 
+  /**
+   * Sets a cookie on the response.
+   * @param {string} name - The name of the cookie.
+   * @param {string} value - The value of the cookie.
+   * @param {object} options - The cookie options.
+   * @returns {object} - The response object.
+   */
   res.setCookie = function (name, value, options) {
     options = options || {};
     var cookieStr = name + "=" + value;
@@ -78,6 +94,12 @@ app.use(function (req, res, next) {
   next();
 });
 
+/**
+ * Middleware to require authentication.
+ * @param {object} req - The request object.
+ * @param {object} res - The response object.
+ * @param {function} next - The next middleware function.
+ */
 function requireAuth(req, res, next) {
   if (!req.cookies.auth) {
     return res.redirect("/login");
@@ -85,6 +107,11 @@ function requireAuth(req, res, next) {
   next();
 }
 
+/**
+ * Renders a page based on the request path.
+ * @param {object} req - The request object.
+ * @param {object} res - The response object.
+ */
 function renderPage(req, res) {
   var pageName = req.path === "/" ? "home" : req.path.substring(1);
   var content = templating.renderPage(pageName, req);
@@ -96,6 +123,9 @@ function renderPage(req, res) {
   res.send(content);
 }
 
+/**
+ * Route to display the webhooks page.
+ */
 app.get("/webhooks", requireAuth, async function (req, res) {
   try {
     var webhooksListHtml = "";
@@ -174,6 +204,9 @@ app.get("/webhooks", requireAuth, async function (req, res) {
   }
 });
 
+/**
+ * Route to create a new webhook.
+ */
 app.post("/api/webhooks", requireAuth, async function (req, res) {
   try {
     var collectionId = req.body.collection;
@@ -202,6 +235,9 @@ app.post("/api/webhooks", requireAuth, async function (req, res) {
   }
 });
 
+/**
+ * Route to delete a webhook.
+ */
 app.delete("/api/webhooks/:id", requireAuth, async function (req, res) {
   try {
     var success = await storageModule.deleteWebhook(req.params.id);
@@ -216,6 +252,9 @@ app.delete("/api/webhooks/:id", requireAuth, async function (req, res) {
   }
 });
 
+/**
+ * Route to display the collections page.
+ */
 app.get("/collections", requireAuth, async function (req, res) {
   try {
     var collections = await storageModule.getCollections();
@@ -272,6 +311,9 @@ app.get("/collections", requireAuth, async function (req, res) {
   }
 });
 
+/**
+ * Route to display a specific collection.
+ */
 app.get("/collections/:id", requireAuth, async function (req, res) {
   try {
     var collectionId = req.params.id;
@@ -431,7 +473,9 @@ app.get("/collections/:id", requireAuth, async function (req, res) {
   }
 });
 
-// API routes for collections
+/**
+ * Route to create a new collection.
+ */
 app.post("/api/collections", requireAuth, async function (req, res) {
   try {
     var name = req.body.name;
@@ -451,6 +495,9 @@ app.post("/api/collections", requireAuth, async function (req, res) {
   }
 });
 
+/**
+ * Route to add an item to a collection.
+ */
 app.post("/api/collections/:id/items", requireAuth, async function (req, res) {
   try {
     const collectionId = req.params.id;
@@ -478,6 +525,9 @@ app.post("/api/collections/:id/items", requireAuth, async function (req, res) {
   }
 });
 
+/**
+ * Route to update an item in a collection.
+ */
 app.put(
   "/api/collections/:collectionId/items/:itemId",
   requireAuth,
@@ -514,6 +564,9 @@ app.put(
   }
 );
 
+/**
+ * Route to delete an item from a collection.
+ */
 app.delete(
   "/api/collections/:collectionId/items/:itemId",
   requireAuth,
@@ -546,6 +599,9 @@ app.delete(
   }
 );
 
+/**
+ * Route to delete a collection.
+ */
 app.delete("/api/collections/:id", requireAuth, async function (req, res) {
   try {
     var collectionId = req.params.id;
@@ -567,7 +623,9 @@ app.delete("/api/collections/:id", requireAuth, async function (req, res) {
   }
 });
 
-// Login routes
+/**
+ * Route to display the login page.
+ */
 app.get("/login", function (req, res) {
   if (req.cookies.auth) {
     return res.redirect("/home");
@@ -575,6 +633,9 @@ app.get("/login", function (req, res) {
   renderPage(req, res);
 });
 
+/**
+ * Route to handle login requests.
+ */
 app.post("/login", function (req, res) {
   var username = req.body.username;
   var password = req.body.password;
@@ -595,6 +656,9 @@ app.post("/login", function (req, res) {
   return res.status(401).json({error: "Invalid credentials"});
 });
 
+/**
+ * Route to handle logout requests.
+ */
 app.get("/logout", function (req, res) {
   res.setCookie("auth", "", {
     maxAge: -1,
@@ -608,7 +672,9 @@ app.get("/logout", function (req, res) {
 app.get("/", requireAuth, renderPage);
 app.get("/home", requireAuth, renderPage);
 
-// Media Library routes
+/**
+ * Route to display the media library.
+ */
 app.get("/media", requireAuth, function (req, res) {
   var mediaItems = mediaModule.getAllMedia();
   var mediaHtml = "";
@@ -669,7 +735,9 @@ app.get("/media", requireAuth, function (req, res) {
   res.send(content);
 });
 
-// API routes for media
+/**
+ * Route to handle media uploads.
+ */
 app.post(
   "/api/media",
   requireAuth,
@@ -691,6 +759,9 @@ app.post(
   }
 );
 
+/**
+ * Route to retrieve all media.
+ */
 app.get("/api/media", requireAuth, function (req, res) {
   try {
     var mediaItems = mediaModule.getAllMedia();
@@ -701,6 +772,9 @@ app.get("/api/media", requireAuth, function (req, res) {
   }
 });
 
+/**
+ * Route to delete a media item.
+ */
 app.delete("/api/media/:id", requireAuth, function (req, res) {
   var mediaId = req.params.id;
 
@@ -717,7 +791,9 @@ app.delete("/api/media/:id", requireAuth, function (req, res) {
   }
 });
 
-// Initialize storage
+/**
+ * Immediately Invoked Function Expression (IIFE) to initialize storage and start the server.
+ */
 (async () => {
   try {
     await storageModule.initializeStorage();

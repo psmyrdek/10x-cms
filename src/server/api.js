@@ -2,7 +2,13 @@ var express = require("express");
 var router = express.Router();
 var storageModule = require("./storage");
 
-// Get all collections
+/**
+ * Get all collections.
+ *
+ * @param {express.Request} req - Express request object.
+ * @param {express.Response} res - Express response object.
+ * @returns {Promise<void>}
+ */
 router.get("/collections", async function (req, res) {
   try {
     var collections = await storageModule.getCollections();
@@ -12,7 +18,13 @@ router.get("/collections", async function (req, res) {
   }
 });
 
-// Get single collection
+/**
+ * Get a single collection by ID.
+ *
+ * @param {express.Request} req - Express request object.
+ * @param {express.Response} res - Express response object.
+ * @returns {Promise<void>}
+ */
 router.get("/collections/:id", async function (req, res) {
   try {
     var collection = await storageModule.getCollectionById(req.params.id);
@@ -25,7 +37,13 @@ router.get("/collections/:id", async function (req, res) {
   }
 });
 
-// Get collection items
+/**
+ * Get all items within a specific collection.
+ *
+ * @param {express.Request} req - Express request object.
+ * @param {express.Response} res - Express response object.
+ * @returns {Promise<void>}
+ */
 router.get("/collections/:id/items", async function (req, res) {
   try {
     var collection = await storageModule.getCollectionById(req.params.id);
@@ -38,7 +56,13 @@ router.get("/collections/:id/items", async function (req, res) {
   }
 });
 
-// Get single item
+/**
+ * Get a single item from a specific collection by item ID.
+ *
+ * @param {express.Request} req - Express request object.
+ * @param {express.Response} res - Express response object.
+ * @returns {Promise<void>}
+ */
 router.get(
   "/collections/:collectionId/items/:itemId",
   async function (req, res) {
