@@ -3,10 +3,12 @@ name: Pull Request
 on:
   pull_request:
     branches: [master]
+    types: [opened, synchronize, reopened, labeled]
 
 jobs:
   build:
     runs-on: ubuntu-latest
+    if: ${{ !contains(github.event.pull_request.labels.*.name, 'automated pr') }}
 
     steps:
       - name: Checkout code

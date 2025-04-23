@@ -1,9 +1,9 @@
 name: Update JSDocs Automatically
 
 on:
-  schedule:
-    # Runs daily at midnight UTC
-    - cron: "0 0 * * *"
+  # schedule:
+  #   # Runs daily at midnight UTC
+  #   - cron: "0 0 * * *"
   workflow_dispatch: # Allows manual triggering
 
 permissions:
@@ -26,17 +26,15 @@ jobs:
           EXCLUDED_DIRS: "node_modules,.git,dist,vendor"
 
       - name: Create Pull Request if changes were made
-        # Only run this step if the previous step reported file updates
         if: steps.ai_jsdoc_updater.outputs.files-updated-count > 0
         uses: peter-evans/create-pull-request@v7
         with:
           token: ${{ secrets.GH_PERSONAL_TOKEN }}
           commit-message: "chore: Update JSDocs with AI Assistant"
-          committer: GitHub <noreply@github.com> # Optional: Customize committer
-          author: ${{ github.actor }} <${{ github.actor_id }}+${{ github.actor }}@users.noreply.github.com> # Optional: Customize author
-          signoff: false # Optional: Whether to signoff commits
-          branch: chore/ai-jsdoc-updates # Branch name for the PR
-          delete-branch: true # Automatically delete branch after merging
+          committer: GitHub <noreply@github.com>
+          author: ${{ github.actor }} <${{ github.actor_id }}+${{ github.actor }}@users.noreply.github.com>
+          branch: chore/ai-jsdoc-updates
+          delete-branch: true
           title: "AI JSDoc Updates"
           body: |
             Automated JSDoc updates by the AI assistant.
