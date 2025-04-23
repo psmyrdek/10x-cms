@@ -17,6 +17,6 @@ jobs:
         with:
           node-version: 22
 
-      - uses: przeprogramowani/ai-action@master
+      - uses: przeprogramowani/ai-action@git-diff
         with:
           GOOGLE_API_KEY: ${{ secrets.GOOGLE_API_KEY }}
