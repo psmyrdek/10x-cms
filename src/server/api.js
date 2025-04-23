@@ -10,12 +10,8 @@ var storageModule = require("./storage");
  * @returns {Promise<void>}
  */
 router.get("/collections", async function (req, res) {
-  try {
-    var collections = await storageModule.getCollections();
-    res.json(collections);
-  } catch (error) {
-    res.status(500).json({error: "Internal server error"});
-  }
+  var collections = await storageModule.getCollections();
+  res.json(collections);
 });
 
 /**
