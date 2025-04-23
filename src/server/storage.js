@@ -6,6 +6,7 @@ const db = require("./db/connection");
  * @async
  * @param {string} name - The name of the collection.
  * @param {object} [schema={}] - The schema for the collection (optional).
+ * @param {boolean} [shouldLogResult=false] - Indicates whether to log the result to the console.
  * @returns {Promise<object>} The newly created collection object.
  */
 async function createCollection(name, schema, shouldLogResult = false) {
