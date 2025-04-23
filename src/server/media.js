@@ -1,11 +1,11 @@
-const fs = require("fs").promises;
-const fsSync = require("fs");
-const path = require("path");
+var fs = require("fs").promises;
+var fsSync = require("fs");
+var path = require("path");
 
 // Base directory for media storage
-const MEDIA_DIR = path.join(process.cwd(), "src/server/data");
-const MEDIA_FILE = "media.json";
-const UPLOADS_DIR = path.join(process.cwd(), "public/uploads");
+var MEDIA_DIR = path.join(process.cwd(), "src/server/data");
+var MEDIA_FILE = "media.json";
+var UPLOADS_DIR = path.join(process.cwd(), "public/uploads");
 
 // Ensure directories exist
 function ensureDirectoriesExist() {
@@ -23,19 +23,19 @@ function getMediaFilePath() {
 }
 
 // Get all media items
-async function getAllMedia() {
+function getAllMedia() {
   ensureDirectoriesExist();
 
-  const mediaPath = getMediaFilePath();
+  var mediaPath = getMediaFilePath();
 
   if (!fsSync.existsSync(mediaPath)) {
     // Initialize with empty array if file doesn't exist
-    await fs.writeFile(mediaPath, JSON.stringify([], null, 2));
+    fs.writeFile(mediaPath, JSON.stringify([], null, 2));
     return [];
   }
 
   try {
-    const data = await fs.readFile(mediaPath, "utf8");
+    var data = fs.readFile(mediaPath, "utf8");
     return JSON.parse(data);
   } catch (err) {
     console.error("Error reading media data:", err);
@@ -44,19 +44,19 @@ async function getAllMedia() {
 }
 
 // Add a new media item
-async function addMedia(file, description) {
+function addMedia(file, description) {
   ensureDirectoriesExist();
 
-  const media = await getAllMedia();
+  var media = getAllMedia();
 
   // Create new media item
-  const newMedia = {
+  var newMedia = {
     id: Date.now().toString(),
     filename: file.filename,
     originalname: file.originalname,
     mimetype: file.mimetype,
     size: file.size,
-    path: `/uploads/${file.filename}`,
+    path: "/uploads/" + file.filename,
     description: description || "",
     uploadDate: new Date().toISOString(),
   };
@@ -65,28 +65,32 @@ async function addMedia(file, description) {
   media.push(newMedia);
 
   // Save updated media data
-  await fs.writeFile(getMediaFilePath(), JSON.stringify(media, null, 2));
+  fs.writeFile(getMediaFilePath(), JSON.stringify(media, null, 2));
 
   return newMedia;
 }
 
 // Delete a media item
-async function deleteMedia(id) {
-  const media = await getAllMedia();
-  const mediaToDelete = media.find((item) => item.id === id);
+function deleteMedia(id) {
+  var media = getAllMedia();
+  var mediaToDelete = media.find(function (item) {
+    return item.id === id;
+  });
 
   if (!mediaToDelete) {
     return false;
   }
 
   // Remove item from array
-  const updatedMedia = media.filter((item) => item.id !== id);
+  var updatedMedia = media.filter(function (item) {
+    return item.id !== id;
+  });
 
   // Delete the file
   try {
-    const filePath = path.join(process.cwd(), "public", mediaToDelete.path);
+    var filePath = path.join(process.cwd(), "public", mediaToDelete.path);
     if (fsSync.existsSync(filePath)) {
-      await fs.unlink(filePath);
+      fs.unlink(filePath);
     }
   } catch (err) {
     console.error("Error deleting file:", err);
@@ -94,32 +98,36 @@ async function deleteMedia(id) {
   }
 
   // Save updated media data
-  await fs.writeFile(getMediaFilePath(), JSON.stringify(updatedMedia, null, 2));
+  fs.writeFile(getMediaFilePath(), JSON.stringify(updatedMedia, null, 2));
 
   return true;
 }
 
 // Get a specific media item by ID
-async function getMediaById(id) {
-  const media = await getAllMedia();
-  return media.find((item) => item.id === id) || null;
+function getMediaById(id) {
+  var media = getAllMedia();
+  return (
+    media.find(function (item) {
+      return item.id === id;
+    }) || null
+  );
 }
 
 // Initialize media storage
-async function initializeMediaStorage() {
+function initializeMediaStorage() {
   ensureDirectoriesExist();
 
   // Initialize with empty array if file doesn't exist
-  const mediaPath = getMediaFilePath();
+  var mediaPath = getMediaFilePath();
   if (!fsSync.existsSync(mediaPath)) {
-    await fs.writeFile(mediaPath, JSON.stringify([], null, 2));
+    fs.writeFile(mediaPath, JSON.stringify([], null, 2));
   }
 }
 
 module.exports = {
-  getAllMedia,
-  addMedia,
-  deleteMedia,
-  getMediaById,
-  initializeMediaStorage,
+  getAllMedia: getAllMedia,
+  addMedia: addMedia,
+  deleteMedia: deleteMedia,
+  getMediaById: getMediaById,
+  initializeMediaStorage: initializeMediaStorage,
 };
