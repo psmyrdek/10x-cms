@@ -8,7 +8,7 @@ const db = require("./db/connection");
  * @param {object} [schema={}] - The schema for the collection (optional).
  * @returns {Promise<object>} The newly created collection object.
  */
-async function createCollection(name, schema) {
+async function createCollection(name, schema, shouldLogResult = false) {
   const collection = {
     id: Date.now().toString(),
     name: name,
@@ -18,6 +18,11 @@ async function createCollection(name, schema) {
   };
 
   await db("collections").insert(collection);
+
+  if (shouldLogResult) {
+    console.log("Collection created:", collection);
+  }
+
   return collection;
 }
 
