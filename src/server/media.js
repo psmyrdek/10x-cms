@@ -17,12 +17,18 @@ function ensureDirectoriesExist() {
   }
 }
 
-// Get full path for media data file
+/**
+ * Get full path for media data file.
+ * @returns {string} The full path to the media file.
+ */
 function getMediaFilePath() {
   return path.join(MEDIA_DIR, MEDIA_FILE);
 }
 
-// Get all media items
+/**
+ * Get all media items.
+ * @returns {Array<object>} An array of media objects.
+ */
 function getAllMedia() {
   ensureDirectoriesExist();
 
@@ -43,7 +49,12 @@ function getAllMedia() {
   }
 }
 
-// Add a new media item
+/**
+ * Add a new media item.
+ * @param {object} file The file object from the upload.
+ * @param {string} description The description of the media item.
+ * @returns {object} The newly created media object.
+ */
 function addMedia(file, description) {
   ensureDirectoriesExist();
 
@@ -70,7 +81,11 @@ function addMedia(file, description) {
   return newMedia;
 }
 
-// Delete a media item
+/**
+ * Delete a media item.
+ * @param {string} id The ID of the media item to delete.
+ * @returns {boolean} True if the item was deleted, false otherwise.
+ */
 function deleteMedia(id) {
   var media = getAllMedia();
   var mediaToDelete = media.find(function (item) {
@@ -103,7 +118,11 @@ function deleteMedia(id) {
   return true;
 }
 
-// Get a specific media item by ID
+/**
+ * Get a specific media item by ID.
+ * @param {string} id The ID of the media item to retrieve.
+ * @returns {object | null} The media object if found, otherwise null.
+ */
 function getMediaById(id) {
   var media = getAllMedia();
   return (
@@ -113,7 +132,9 @@ function getMediaById(id) {
   );
 }
 
-// Initialize media storage
+/**
+ * Initializes the media storage by ensuring the necessary directories exist and creating the media data file if it doesn't exist.
+ */
 function initializeMediaStorage() {
   ensureDirectoriesExist();
 

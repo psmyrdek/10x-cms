@@ -19,7 +19,12 @@ $(document).ready(function () {
     );
   }
 
-  // Function to show global alerts
+  /**
+   * Shows a global alert message.
+   *
+   * @param {string} message - The message to display in the alert.
+   * @param {string} [type="success"] - The type of alert (e.g., "success", "danger", "warning", "info"). Defaults to "success".
+   */
   window.showGlobalAlert = function (message, type) {
     var $alertContainer = $(
       '<div class="alert alert-' +
@@ -120,6 +125,9 @@ $(document).ready(function () {
   });
 });
 
+/**
+ * Initializes the collections page functionality.
+ */
 function initCollectionsPage() {
   // Create collection modal
   var $modal = $("#createCollectionModal");
@@ -394,6 +402,9 @@ function initCollectionsPage() {
   });
 }
 
+/**
+ * Initializes the collection detail page functionality.
+ */
 function initCollectionDetailPage() {
   // Get collection ID from meta tag
   var collectionIdMeta = $('meta[name="collection-id"]').attr("content");
@@ -415,11 +426,16 @@ function initCollectionDetailPage() {
   var $mediaSelectorContainer = $("#mediaSelectorContainer");
   var currentMediaField = null;
 
-  // Show/hide loading indicator functions
+  /**
+   * Shows the loading indicator.
+   */
   function showLoader() {
     $("#fullPageLoader").removeClass("d-none");
   }
 
+  /**
+   * Hides the loading indicator.
+   */
   function hideLoader() {
     $("#fullPageLoader").addClass("d-none");
   }
@@ -471,7 +487,9 @@ function initCollectionDetailPage() {
     });
   });
 
-  // Load media items for selector
+  /**
+   * Loads media items for the media selector.
+   */
   function loadMediaItems() {
     $mediaSelectorContainer.html(
       '<div class="col-12 text-center"><div class="spinner-border" role="status"><span class="visually-hidden">Loading...</span></div></div>'
@@ -540,7 +558,11 @@ function initCollectionDetailPage() {
     });
   }
 
-  // Select media item
+  /**
+   * Selects a media item and updates the corresponding input field and preview.
+   *
+   * @param {string} mediaPath - The path to the selected media item.
+   */
   function selectMedia(mediaPath) {
     if (!currentMediaField) {
       return;
@@ -1003,363 +1025,3 @@ function initCollectionDetailPage() {
 
           // Update item count if displayed
           var $itemCount = $(".item-count");
-          if ($itemCount.length > 0) {
-            var currentCount = parseInt($itemCount.text(), 10);
-            $itemCount.text(Math.max(0, currentCount - 1));
-          }
-
-          // If no more items, show the "no items" message
-          if ($("tbody tr").length === 0) {
-            $(".table-responsive").replaceWith(
-              '<p class="alert alert-info text-dark">No items in this collection yet. Add your first item to get started.</p>'
-            );
-          }
-        },
-        error: function (xhr) {
-          // Hide loading indicator
-          hideLoader();
-          showGlobalAlert("Error deleting item: " + xhr.responseText, "danger");
-        },
-      });
-    }
-  });
-
-  // Add this function inside initCollectionDetailPage
-  function initializeRowButtons($row) {
-    // Initialize edit button
-    $row.find(".edit-item-btn").on("click", function () {
-      var $row = $(this).closest("tr");
-      var itemId = $row.data("id");
-
-      // Get the collection schema
-      var schema = {};
-      $("table thead th").each(function (index) {
-        if (index < $("table thead th").length - 1) {
-          schema[$(this).text()] = "string"; // Default to string type
-        }
-      });
-
-      // Get the current item values
-      var itemData = {};
-      $row.find("td").each(function (index) {
-        if (index < $row.find("td").length - 1) {
-          var fieldName = $("table thead th").eq(index).text();
-
-          // Check if this is a media field
-          if ($(this).find("img").length > 0) {
-            itemData[fieldName] = $(this).find("img").attr("src");
-          } else {
-            var cellText = $(this).text();
-            itemData[fieldName] = cellText;
-          }
-        }
-      });
-
-      // Reset and fill the form
-      $("#itemForm")[0].reset();
-      for (var field in itemData) {
-        var $field = $("#" + field);
-        if ($field.length > 0) {
-          $field.val(itemData[field]);
-
-          // Handle media field previews
-          if (
-            $field.hasClass("media-field-input") ||
-            $("#" + field + "_display").length > 0
-          ) {
-            $("#" + field + "_display").val(itemData[field]);
-            $("#" + field + "_preview").html(
-              '<img src="' +
-                itemData[field] +
-                '" class="img-thumbnail" style="max-height: 100px;">'
-            );
-          }
-        }
-      }
-
-      // Update modal for edit mode
-      $("#itemModal .modal-title").text("Edit Item");
-      $("#saveItemBtn")
-        .text("Update Item")
-        .data("mode", "edit")
-        .data("item-id", itemId);
-
-      // Show modal
-      $("#itemModal").modal("show");
-    });
-
-    // Initialize delete button
-    $row.find(".delete-item-btn").on("click", function () {
-      var $row = $(this).closest("tr");
-      var itemId = $row.data("id");
-
-      if (
-        confirm(
-          "Are you sure you want to delete this item? This action cannot be undone."
-        )
-      ) {
-        showLoader();
-        $.ajax({
-          url: "/api/collections/" + collectionId + "/items/" + itemId,
-          method: "DELETE",
-          success: function (response) {
-            hideLoader();
-            showGlobalAlert("Item deleted successfully!");
-            $row.remove();
-
-            // Update item count if displayed
-            var $itemCount = $(".item-count");
-            if ($itemCount.length > 0) {
-              var currentCount = parseInt($itemCount.text(), 10);
-              $itemCount.text(Math.max(0, currentCount - 1));
-            }
-
-            // Show "no items" message if table is empty
-            if ($("tbody tr").length === 0) {
-              $(".table-responsive").replaceWith(
-                '<p class="alert alert-info text-dark">No items in this collection yet. Add your first item to get started.</p>'
-              );
-            }
-          },
-          error: function (xhr) {
-            hideLoader();
-            showGlobalAlert(
-              "Error deleting item: " + xhr.responseText,
-              "danger"
-            );
-          },
-        });
-      }
-    });
-  }
-}
-
-function initMediaPage() {
-  // Upload image modal
-  var $modal = $("#uploadImageModal");
-  var $form = $("#uploadImageForm");
-  var $saveBtn = $("#saveImageBtn");
-
-  // Delete image modal
-  var $deleteModal = $("#deleteImageModal");
-  var $confirmDeleteBtn = $("#confirmDeleteImageBtn");
-
-  // Preview image modal
-  var $previewModal = $("#imagePreviewModal");
-  var $previewImage = $("#previewImage");
-  var $previewDescription = $("#previewDescription");
-  var $copyUrlBtn = $("#copyImageUrlBtn");
-
-  // Check if modal should be automatically opened (from query parameter)
-  var urlParams = new URLSearchParams(window.location.search);
-  if (urlParams.get("action") === "upload") {
-    setTimeout(function () {
-      $modal.modal("show");
-    }, 300);
-  }
-
-  // Show upload modal when button is clicked
-  $("#uploadImageBtn").on("click", function () {
-    $modal.modal("show");
-  });
-
-  // Save button click handler
-  $saveBtn.on("click", function () {
-    // Validate form
-    if (!$form[0].checkValidity()) {
-      $form[0].reportValidity();
-      return;
-    }
-
-    // Create FormData object
-    var formData = new FormData();
-    var fileInput = document.getElementById("imageFile");
-    var descriptionInput = document.getElementById("imageDescription");
-
-    // Add file and description to FormData
-    formData.append("image", fileInput.files[0]);
-    formData.append("description", descriptionInput.value);
-
-    // Send AJAX request to upload image
-    $.ajax({
-      url: "/api/media",
-      method: "POST",
-      data: formData,
-      processData: false,
-      contentType: false,
-      success: function (response) {
-        // Hide modal
-        $modal.modal("hide");
-
-        // Reset form
-        $form[0].reset();
-
-        // Show success message
-        showGlobalAlert("Image uploaded successfully!");
-
-        // Remove any existing "no images" message
-        if ($("#mediaContainer .alert").length > 0) {
-          $("#mediaContainer").empty();
-        }
-
-        // Create and add the new image card to the DOM
-        var media = response.media;
-        var mediaHtml = '<div class="col-md-3 mb-4">';
-        mediaHtml += '<div class="card h-100">';
-        mediaHtml +=
-          '<img src="' +
-          media.path +
-          '" class="card-img-top" alt="' +
-          media.originalname +
-          '" style="height: 150px; object-fit: cover;">';
-        mediaHtml += '<div class="card-body">';
-        // Add meta tag with media ID
-        mediaHtml += "<!-- @mediaId:" + media.id + " -->";
-        mediaHtml +=
-          '<h6 class="card-title text-truncate">' +
-          media.originalname +
-          "</h6>";
-        mediaHtml +=
-          '<p class="card-text small text-muted">' +
-          (media.description || "No description") +
-          "</p>";
-        mediaHtml += '<div class="d-flex justify-content-between">';
-        mediaHtml +=
-          '<button class="btn btn-sm btn-primary preview-image-btn" data-id="' +
-          media.id +
-          '" data-path="' +
-          media.path +
-          '" data-name="' +
-          media.originalname +
-          '" data-description="' +
-          (media.description || "") +
-          '">Preview</button>';
-        mediaHtml +=
-          '<button class="btn btn-sm btn-danger delete-image-btn" data-id="' +
-          media.id +
-          '">Delete</button>';
-        mediaHtml += "</div>";
-        mediaHtml += "</div></div></div>";
-
-        $("#mediaContainer").append(mediaHtml);
-
-        // Initialize buttons for the new media item
-        initMediaItemButtons();
-      },
-      error: function (xhr) {
-        showGlobalAlert("Error uploading image: " + xhr.responseText, "danger");
-      },
-    });
-  });
-
-  // Initialize buttons for all media items
-  initMediaItemButtons();
-
-  function initMediaItemButtons() {
-    // Preview button click handler
-    $(".preview-image-btn")
-      .off("click")
-      .on("click", function () {
-        var $btn = $(this);
-        var path = $btn.data("path");
-        var name = $btn.data("name");
-        var description = $btn.data("description");
-
-        // Set preview image and description
-        $previewImage.attr("src", path);
-        $previewImage.attr("alt", name);
-        $previewDescription.text(description || "No description");
-
-        // Set copy URL button data
-        $copyUrlBtn.data("url", window.location.origin + path);
-
-        // Show preview modal
-        $previewModal.modal("show");
-      });
-
-    // Delete button click handler
-    $(".delete-image-btn")
-      .off("click")
-      .on("click", function () {
-        var $btn = $(this);
-        var mediaId = $btn.data("id");
-
-        // Set media to delete
-        $("#image-id-to-delete").attr("content", mediaId);
-
-        // Show delete confirmation modal
-        $deleteModal.modal("show");
-      });
-  }
-
-  // Confirm delete button click handler
-  $confirmDeleteBtn.on("click", function () {
-    // Get media ID from meta tag
-    var metaTag = $("#image-id-to-delete");
-    var mediaId = metaTag.attr("content");
-
-    if (!mediaId) {
-      alert("Error: No media ID specified for deletion");
-      $deleteModal.modal("hide");
-      return;
-    }
-
-    // Send AJAX request to delete media
-    $.ajax({
-      url: "/api/media/" + mediaId,
-      method: "DELETE",
-      success: function (response) {
-        // Hide modal
-        $deleteModal.modal("hide");
-
-        // Show success message
-        showGlobalAlert("Image deleted successfully!");
-
-        // Find and remove the media card with the matching ID
-        $(".card").each(function () {
-          var cardHtml = $(this).html();
-          var metaTagMatch = cardHtml.match(/<!-- @mediaId:([^>]+) -->/);
-
-          if (metaTagMatch && metaTagMatch[1] === mediaId) {
-            // Remove the parent col-md-3 element that contains the card
-            $(this).closest(".col-md-3").remove();
-          }
-        });
-
-        // If no more media items, show "no images" message
-        if ($("#mediaContainer .col-md-3").length === 0) {
-          $("#mediaContainer").html(
-            '<div class="col-12"><p class="alert text-dark">No images found. Upload your first image to get started.</p></div>'
-          );
-        }
-      },
-      error: function (xhr) {
-        showGlobalAlert("Error deleting image: " + xhr.responseText, "danger");
-        $deleteModal.modal("hide");
-      },
-    });
-  });
-
-  // Copy URL button click handler
-  $copyUrlBtn.on("click", function () {
-    var url = $(this).data("url");
-
-    // Create temporary textarea to copy URL
-    var tempTextarea = document.createElement("textarea");
-    tempTextarea.value = url;
-    document.body.appendChild(tempTextarea);
-    tempTextarea.select();
-    document.execCommand("copy");
-    document.body.removeChild(tempTextarea);
-
-    // Change button text temporarily
-    var $btn = $(this);
-    var originalText = $btn.text();
-    $btn.text("URL Copied!");
-
-    // Reset button text after 2 seconds
-    setTimeout(function () {
-      $btn.text(originalText);
-    }, 2000);
-  });
-}

@@ -1,6 +1,11 @@
 var fs = require("fs");
 var path = require("path");
 
+/**
+ * Reads a file synchronously.
+ * @param {string} filepath - The path to the file.
+ * @returns {string|null} The file content as a string, or null if an error occurred.
+ */
 function readFileSync(filepath) {
   try {
     return fs.readFileSync(filepath, "utf8");
@@ -10,6 +15,11 @@ function readFileSync(filepath) {
   }
 }
 
+/**
+ * Parses meta tags from a string.
+ * @param {string} content - The string to parse.
+ * @returns {object} An object containing the meta tags.
+ */
 function parseMetaTags(content) {
   var meta = {};
   var lines = content.split("\n");
@@ -28,6 +38,13 @@ function parseMetaTags(content) {
   return meta;
 }
 
+/**
+ * Injects a component into a string.
+ * @param {string} content - The string to inject the component into.
+ * @param {string} componentName - The name of the component to inject.
+ * @param {object} variables - The variables to pass to the component.
+ * @returns {string} The string with the component injected.
+ */
 function injectComponent(content, componentName, variables) {
   var componentPath = path.join(
     process.cwd(),
@@ -48,6 +65,13 @@ function injectComponent(content, componentName, variables) {
   );
 }
 
+/**
+ * Renders content with a layout.
+ * @param {string} content - The content to render.
+ * @param {string} layoutName - The name of the layout to use.
+ * @param {object} variables - The variables to pass to the layout.
+ * @returns {string} The rendered content.
+ */
 function renderWithLayout(content, layoutName, variables) {
   var layoutPath = path.join(process.cwd(), "src/layout", layoutName + ".html");
   var layoutContent = readFileSync(layoutPath);
@@ -64,6 +88,13 @@ function renderWithLayout(content, layoutName, variables) {
   return renderTemplate(layoutContent, variables);
 }
 
+/**
+ * Processes conditional blocks in the content based on the provided variables.
+ *
+ * @param {string} content - The content string to process.
+ * @param {object} variables - An object containing variables used in the conditional blocks.
+ * @returns {string} The processed content with conditional blocks evaluated.
+ */
 function processConditionals(content, variables) {
   // Process if conditions
   var ifRegex = /<!-- @if:(\w+) -->([\s\S]*?)<!-- @endif -->/g;
@@ -86,6 +117,12 @@ function processConditionals(content, variables) {
   return content;
 }
 
+/**
+ * Renders a template string with the given variables.
+ * @param {string} template - The template string.
+ * @param {object} variables - An object containing the variables to replace in the template.
+ * @returns {string} The rendered template.
+ */
 function renderTemplate(template, variables) {
   var content = template;
 
@@ -108,6 +145,13 @@ function renderTemplate(template, variables) {
   return content;
 }
 
+/**
+ * Renders a page.
+ * @param {string} pageName - The name of the page to render.
+ * @param {object} req - The request object.
+ * @param {object} customVariables - The custom variables to pass to the page.
+ * @returns {string|null} The rendered page, or null if an error occurred.
+ */
 function renderPage(pageName, req, customVariables) {
   var pagePath = path.join(process.cwd(), "src/pages", pageName + ".html");
   var content = readFileSync(pagePath);

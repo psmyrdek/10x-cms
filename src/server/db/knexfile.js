@@ -1,5 +1,8 @@
 const path = require("path");
 
+/**
+ * @type { Object.<string, import("knex").Knex.Config> }
+ */
 module.exports = {
   development: {
     client: "sqlite3",
@@ -14,6 +17,10 @@ module.exports = {
     },
     useNullAsDefault: true,
     pool: {
+      /**
+       * @param {any} conn
+       * @param {any} cb
+       */
       afterCreate: (conn, cb) => {
         conn.run("PRAGMA foreign_keys = ON", cb);
       },
@@ -47,6 +54,10 @@ module.exports = {
     },
     useNullAsDefault: true,
     pool: {
+      /**
+       * @param {any} conn
+       * @param {any} cb
+       */
       afterCreate: (conn, cb) => {
         conn.run("PRAGMA foreign_keys = ON", cb);
       },
